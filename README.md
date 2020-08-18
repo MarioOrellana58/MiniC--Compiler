@@ -1,2 +1,2 @@
-# MiniC--Compiler
+# MiniC#--Compiler
 Compilers project - 2020
