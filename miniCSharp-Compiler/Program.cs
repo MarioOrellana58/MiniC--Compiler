@@ -13,10 +13,10 @@ namespace miniCSharp_Compiler
         static void Main(string[] args)
         {
 
-            var path = "fileName.txt";//implement IDE for user
+            var path = "llega.txt";//implement IDE for user
             int column = 0;
             int row = 0;
-
+            
             using (var sr = new StreamReader(path, Encoding.UTF8))
             {
                 row++;
@@ -34,3 +34,8 @@ namespace miniCSharp_Compiler
         }
     }
 }
+
+
+
+
+
