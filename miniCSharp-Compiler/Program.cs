@@ -13,24 +13,11 @@ namespace miniCSharp_Compiler
         static void Main(string[] args)
         {
 
-            var path = "llega.txt";//implement IDE for user
-            int column = 0;
-            int row = 0;
+            var path = "pathToFile.txt";//implement IDE for user
+            var analyze = new LexicalAnalyzer();
+            analyze.ReadFile(path);
             
-            using (var sr = new StreamReader(path, Encoding.UTF8))
-            {
-                row++;
-                var fileLine = sr.ReadLine();
-                while (fileLine != null)
-                {
-                    row++;
-                    for (int i = 0; i < fileLine.Length; i++)
-                    {
-                        column++;
-                    }
-                    fileLine = sr.ReadLine();
-                }
-            }
+            
         }
     }
 }

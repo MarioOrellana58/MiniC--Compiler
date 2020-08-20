@@ -23,5 +23,19 @@ namespace miniCSharp_Compiler
         //#                      --- Error en columna 7, el caracter # no es reconocido, se omitió
         //3                      --- Constante columnas 8-8
         //estoEsUnID             --- Identificador columnas 9-18
+
+        /*
+            Token:
+                E --> Error
+                I --> Identifier
+                R --> Reserved word
+                D --> double
+                B --> bool
+                N --> int
+                H --> hexadecimal
+                X --> Exponential                
+                S --> String
+                C --> Comment
+         */
     }
 }
