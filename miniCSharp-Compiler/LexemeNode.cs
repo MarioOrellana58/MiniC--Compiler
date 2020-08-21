@@ -15,6 +15,12 @@ namespace miniCSharp_Compiler
         public char Token { get; set; }
         public string Description { get; set; }
 
+        public LexemeNode()
+        {
+            this.Value = string.Empty;
+            this.Description = string.Empty;
+
+        }
         //entrada: hola%2#3estoEsUnID
         //1. Los caracteres no válidos funcionaron como separadores de tokens
         //hola                   --- Identificador columnas 1-4
