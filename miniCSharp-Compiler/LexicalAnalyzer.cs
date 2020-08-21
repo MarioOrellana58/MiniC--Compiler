@@ -70,12 +70,11 @@ namespace miniCSharp_Compiler
             var row = 0;
             using (var sr = new StreamReader(path, Encoding.UTF8))
             {
-                var fileLine = sr.ReadLine();
-                while (fileLine != null)
+                var fileLine = string.Empty;
+                while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
                     AnalyzeLine(fileLine, row);
-                    fileLine = sr.ReadLine();
                 }
             }
         }
@@ -86,23 +85,19 @@ namespace miniCSharp_Compiler
             for (int column = 0; column < fileLine.Length; column++)
             {
 
-                //first it analyzes if the read character is a not valid character
                 if (fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n' )
                 {
                     if (tempNode.Value != string.Empty)
                     {
-                        finishLexemeNode(ref tempNode, column);
-                        Lexemes.Add(tempNode);
-                        tempNode = new LexemeNode();                    
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);                                            
                     }
                 }
+                //it analyzes if the read character is a not valid character
                 else if (!OperatorsAndPuncChars.Contains(fileLine[column].ToString()) && !Char.IsLetterOrDigit(fileLine[column]))
                 {
                     if (tempNode.Value != string.Empty)
                     {
-                        finishLexemeNode(ref tempNode, column);
-                        Lexemes.Add(tempNode);
-                        tempNode = new LexemeNode();
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                     }
                      
                     tempNode = new LexemeNode();
@@ -116,14 +111,15 @@ namespace miniCSharp_Compiler
                     tempNode = new LexemeNode();
                     
                 }
-                else if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) && tempNode.Token != 'O')//this last validation was made because of double operators
+                else if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) && 
+                          tempNode.Token != 'O' && 
+                          tempNode.Token != 'N' && 
+                          tempNode.Token != 'X')//this last validation was made because of double operators
                 {
                     if (tempNode.Value != string.Empty)
                     {
                         //if this is true then we already have a node to finish
-                        finishLexemeNode(ref tempNode, column);
-                        Lexemes.Add(tempNode);
-                        tempNode = new LexemeNode();
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                         column--;//recoil
                     }
                     else
@@ -197,6 +193,108 @@ namespace miniCSharp_Compiler
                                 }
 
                                 break;
+                            case 'O':
+                                if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()))
+                                {
+
+                                    if (OperatorsAndPuncChars.Contains(tempNode.Value + fileLine[column].ToString()))
+                                    {
+                                        //if is a double operator then it concatenates its value to the node value
+                                        tempNode.Value += fileLine[column].ToString();
+                                    }
+                                    else
+                                    {
+                                        //else the value stays as it was and a recoil is made
+                                        column--;
+                                    }
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column+1, string.Empty);
+                                }
+                                else
+                                {
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;
+                                }
+                                break;
+                            case 'N':
+                                if (char.IsDigit(fileLine[column]))
+                                {
+                                    tempNode.Value += fileLine[column];
+                                }
+                                else if ((fileLine[column] == 'x' || fileLine[column] == 'X') && tempNode.Value == "0")
+                                {
+                                    tempNode.Value += fileLine[column];
+                                    tempNode.Token = 'H';
+                                }
+                                else if (fileLine[column] == '.')
+                                {
+                                    tempNode.Value += fileLine[column];
+                                    tempNode.Token = 'D';
+                                }
+                                else
+                                {
+                                    //if this is true then we already have a node to finish
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;//recoil
+                                }
+                                break;
+                            case 'H':
+                                if (char.IsLetter(fileLine[column]))
+                                {
+                                    var asciiCode = (int)(char)fileLine[column];
+                                    if ((asciiCode >= 65 && asciiCode <= 70) || ((asciiCode >= 97 && asciiCode <= 102)))
+                                    {
+                                        tempNode.Value += fileLine[column];
+                                    }
+                                    else
+                                    {                                        
+                                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                        column--;
+                                    }
+                                }
+                                else if (char.IsDigit(fileLine[column]))
+                                {
+                                    tempNode.Value += fileLine[column];
+                                }
+                                else
+                                {
+                                    int a = 3;
+                                }
+                                break;
+                            case 'D':
+                                if (char.IsDigit(fileLine[column]))
+                                {
+                                    tempNode.Value += fileLine[column];
+                                }
+                                else if (fileLine[column] == 'e' || fileLine[column] == 'E')
+                                {
+                                    tempNode.Value += fileLine[column];
+                                    tempNode.Token = 'X';
+                                }
+                                else
+                                {
+                                    //if this is true then we already have a node to finish
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;//recoil
+                                }
+                                break;
+                            case 'X':
+                                if (char.IsDigit(fileLine[column]) || 
+                                    ((fileLine[column] == '+' || fileLine[column] == '-') &&
+                                    (tempNode.Value[tempNode.Value.Length - 1] == 'e' || tempNode.Value[tempNode.Value.Length - 1] == 'E')))
+                                {
+                                    if ((tempNode.Value[tempNode.Value.Length - 1] == 'e' || tempNode.Value[tempNode.Value.Length - 1] == 'E') && char.IsDigit(fileLine[column]))
+                                    {
+                                        tempNode.Value += '+';
+                                    }
+                                    tempNode.Value += fileLine[column];
+                                }
+                                else
+                                {
+                                    //The character readed is a letter
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;//recoil
+                                }
+                                break;
                             default:
                                 break;
                         }
@@ -205,15 +303,17 @@ namespace miniCSharp_Compiler
             }
             if(tempNode.Value != string.Empty)
             {
-                finishLexemeNode(ref tempNode, fileLine.Length);
-                Lexemes.Add(tempNode);
+                finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, string.Empty);                
             }
         }
 
-        void finishLexemeNode(ref LexemeNode tempNode, int column)
+        void finishLexemeNodeAndAddToLexemes(ref LexemeNode tempNode, int column, string error)
         {
             switch (tempNode.Token)
             {
+                case 'E':
+                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
+                    break;
                 case 'I':
                     if (ReservedWords.Contains(tempNode.Value))
                     {
@@ -233,20 +333,37 @@ namespace miniCSharp_Compiler
                 case 'N':
                     break;
                 case 'H':
+                    if (tempNode.Value[tempNode.Value.Length-1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
+                    {
+                        tempNode.Token = 'E';
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, "En constantes hexadecimales, luego de la 'X' o 'x' debe escribir al menos un número o una letra de la a-f o A-F");
+                    }
                     break;
                 case 'X':
+                    if (!char.IsDigit(tempNode.Value[tempNode.Value.Length - 1]))
+                    {
+                        tempNode.Token = 'E';
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, "En constantes exponenciales, luego de la E, e o del signo del exponencial debe escribir al menos un número.");
+                    }
+                    //if this is true then we already have a node to finish
                     break;
                 case 'S':
                     break;
                 case 'C':
                     break;
-                case 'O':
-                    break;
                 default:
                     break;
             }
             tempNode.EndColumn = column;
-            tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un(a) " + getTokenDescription(tempNode.Token);
+            if (tempNode.Description == string.Empty && error == string.Empty && tempNode.Token != 'E')
+            {
+                tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
+            }
+            if (tempNode.Token != '\0')
+            {
+                Lexemes.Add(tempNode);
+            }
+            tempNode = new LexemeNode();
         }
 
         string getTokenDescription(char tokenID)
