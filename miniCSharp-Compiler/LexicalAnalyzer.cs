@@ -71,35 +71,39 @@ namespace miniCSharp_Compiler
             using (var sr = new StreamReader(path, Encoding.UTF8))
             {
                 var fileLine = string.Empty;
+                var tempNode = new LexemeNode();
                 while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
-                    AnalyzeLine(fileLine, row);
+                    analyzeLine(fileLine, row, ref tempNode);
                 }
             }
         }
 
-        void AnalyzeLine(string fileLine, int row)
+        void analyzeLine(string fileLine, int row, ref LexemeNode tempNode)
         {
-            var tempNode = new LexemeNode();
             for (int column = 0; column < fileLine.Length; column++)
             {
 
-                if (fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n' )
-                {
-                    if (tempNode.Value != string.Empty)
-                    {
-                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);                                            
-                    }
-                }
-                //it analyzes if the read character is a not valid character
-                else if (!OperatorsAndPuncChars.Contains(fileLine[column].ToString()) && !Char.IsLetterOrDigit(fileLine[column]))
+                if ((fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n') && (tempNode.Token != 'M') && (tempNode.Token != 'S'))
                 {
                     if (tempNode.Value != string.Empty)
                     {
                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                     }
-                     
+                }
+                else if (!OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
+                        !Char.IsLetterOrDigit(fileLine[column]) &&
+                        fileLine[column] != '_' &&
+                        fileLine[column] != '"' &&
+                        tempNode.Token != 'M' &&
+                        tempNode.Token != 'S')
+                {
+                    if (tempNode.Value != string.Empty)
+                    {
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                    }
+
                     tempNode = new LexemeNode();
                     tempNode.Value = fileLine[column].ToString();
                     tempNode.StartColumn = column + 1;
@@ -109,26 +113,69 @@ namespace miniCSharp_Compiler
                     tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un caracter no reconocido ";
                     Lexemes.Add(tempNode);
                     tempNode = new LexemeNode();
-                    
+
                 }
-                else if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) && 
-                          tempNode.Token != 'O' && 
-                          tempNode.Token != 'N' && 
-                          tempNode.Token != 'X')//this last validation was made because of double operators
+                else
+                if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
+                        tempNode.Token != 'M' &&
+                        tempNode.Token != 'C' &&
+                        tempNode.Token != 'O' &&//this validation was made because of double operators                      
+                        tempNode.Token != 'N' &&
+                        tempNode.Token != 'X')
                 {
                     if (tempNode.Value != string.Empty)
                     {
-                        //if this is true then we already have a node to finish
+                        //if this is true then we already have a node to finish                        
                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                         column--;//recoil
                     }
                     else
                     {
-                        //if this is true then we are reading the first part of an operator
-                        tempNode.Value += fileLine[column].ToString();
+                        //if this is true then we are reading the first part of an operator or the start of a comment
+                        tempNode.Value = fileLine[column].ToString();
                         tempNode.StartColumn = column + 1;
                         tempNode.Row = row;
-                        tempNode.Token = 'O';
+                        if (fileLine[column] == '/')
+                        {
+                            if (column + 1 < fileLine.Length)
+                            {
+                                if (fileLine[column + 1] == '*')
+                                {
+                                    tempNode.Token = 'M';
+                                    column++;
+                                    tempNode.Value += fileLine[column].ToString();
+                                }
+                                else
+                                {
+                                    tempNode.Token = 'O';
+                                }
+                            }
+                            else
+                            {
+                                tempNode.Token = 'O';
+                            }
+                        }
+                        else if (fileLine[column] == '*')
+                        {
+                            if (column + 1 < fileLine.Length)
+                            {
+                                if (fileLine[column + 1] == '/')
+                                {
+                                    column++;
+                                    tempNode.Token = 'E';
+                                    tempNode.Value += fileLine[column].ToString();
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, "fin de comentario sin emparejar hallado");
+                                }
+                                else
+                                {
+                                    tempNode.Token = 'O';
+                                }
+                            }
+                        }
+                        else
+                        {
+                            tempNode.Token = 'O';
+                        }
                     }
 
                 }
@@ -160,15 +207,6 @@ namespace miniCSharp_Compiler
                             tempNode.Row = row;
                             tempNode.Token = 'S';
                         }
-                        else if (fileLine[column] == '/')
-                        {
-                            //comment
-                            column++;
-                            tempNode.Value = fileLine[column].ToString();
-                            tempNode.StartColumn = column + 1;
-                            tempNode.Row = row;
-                            tempNode.Token = 'C';
-                        }
 
                     }
                     else
@@ -177,21 +215,26 @@ namespace miniCSharp_Compiler
                         {
                             case 'I':
                                 //validar si es identificador, bool o palabra reservada
-                                if (char.IsLetterOrDigit(fileLine[column]))
+                                if (char.IsLetterOrDigit(fileLine[column]) || fileLine[column] == '_')
                                 {
-                                    if (tempNode.Value.Length <= 31)
+                                    if (tempNode.Value.Length < 31)
                                     {
                                         tempNode.Value += fileLine[column];
                                     }
                                     else
                                     {
-                                        if (tempNode.Description != string.Empty)
+                                        if (tempNode.Description == string.Empty)
                                         {
-                                            tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " identificador de longitud no permitida, se tomaron nada más los primeros 31 caracteres";
+                                            tempNode.EndColumn = column;
+                                            tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " identificador de longitud no permitida, se tomaron nada más los primeros 31 caracteres";
                                         }
                                     }
                                 }
-
+                                else
+                                {
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;//recoil
+                                }
                                 break;
                             case 'O':
                                 if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()))
@@ -207,7 +250,7 @@ namespace miniCSharp_Compiler
                                         //else the value stays as it was and a recoil is made
                                         column--;
                                     }
-                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column+1, string.Empty);
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
                                 }
                                 else
                                 {
@@ -246,7 +289,7 @@ namespace miniCSharp_Compiler
                                         tempNode.Value += fileLine[column];
                                     }
                                     else
-                                    {                                        
+                                    {
                                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                                         column--;
                                     }
@@ -254,10 +297,6 @@ namespace miniCSharp_Compiler
                                 else if (char.IsDigit(fileLine[column]))
                                 {
                                     tempNode.Value += fileLine[column];
-                                }
-                                else
-                                {
-                                    int a = 3;
                                 }
                                 break;
                             case 'D':
@@ -278,7 +317,7 @@ namespace miniCSharp_Compiler
                                 }
                                 break;
                             case 'X':
-                                if (char.IsDigit(fileLine[column]) || 
+                                if (char.IsDigit(fileLine[column]) ||
                                     ((fileLine[column] == '+' || fileLine[column] == '-') &&
                                     (tempNode.Value[tempNode.Value.Length - 1] == 'e' || tempNode.Value[tempNode.Value.Length - 1] == 'E')))
                                 {
@@ -295,16 +334,69 @@ namespace miniCSharp_Compiler
                                     column--;//recoil
                                 }
                                 break;
+                            case 'M':
+                                if (fileLine[column] == '*')
+                                {
+                                    if (column + 1 < fileLine.Length)
+                                    {
+                                        if (fileLine[column + 1] == '/')
+                                        {
+                                            tempNode.Value += fileLine[column];
+                                            column++;
+                                            tempNode.Value += fileLine[column];
+                                            finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                                        }
+                                        else
+                                        {
+                                            validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
+                                    }
+                                }
+                                else
+                                {
+                                    validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
+                                }
+                                break;
+                            case 'S':
+                                if (fileLine[column] == '"')
+                                {
+                                    tempNode.Value += fileLine[column];
+                                    finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                }
+                                else
+                                {
+                                    validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
+                                }
+                                break;
                             default:
                                 break;
                         }
                     }
                 }
             }
-            if(tempNode.Value != string.Empty)
+            if (tempNode.Value != string.Empty && tempNode.Token != 'M')
             {
-                finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, string.Empty);                
+                if (tempNode.Token == 'S')
+                {
+                    tempNode.Token = 'E';
+                    finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, "cadena sin finalizar hallada");
+                }
+                else
+                {
+                    finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, string.Empty);
+                }
+
             }
+            else if (tempNode.Token == 'M')
+            {
+                tempNode.Value += '\n';
+            }
+
+
         }
 
         void finishLexemeNodeAndAddToLexemes(ref LexemeNode tempNode, int column, string error)
@@ -312,7 +404,7 @@ namespace miniCSharp_Compiler
             switch (tempNode.Token)
             {
                 case 'E':
-                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
+                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
                     break;
                 case 'I':
                     if (ReservedWords.Contains(tempNode.Value))
@@ -333,7 +425,7 @@ namespace miniCSharp_Compiler
                 case 'N':
                     break;
                 case 'H':
-                    if (tempNode.Value[tempNode.Value.Length-1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
+                    if (tempNode.Value[tempNode.Value.Length - 1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
                     {
                         tempNode.Token = 'E';
                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, "En constantes hexadecimales, luego de la 'X' o 'x' debe escribir al menos un número o una letra de la a-f o A-F");
@@ -354,7 +446,7 @@ namespace miniCSharp_Compiler
                 default:
                     break;
             }
-            tempNode.EndColumn = column;
+            tempNode.EndColumn = tempNode.EndColumn == 0 ? column : tempNode.EndColumn;
             if (tempNode.Description == string.Empty && error == string.Empty && tempNode.Token != 'E')
             {
                 tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
@@ -389,11 +481,27 @@ namespace miniCSharp_Compiler
                 case 'S':
                     return "cadena de caracteres (string)";
                 case 'C':
-                    return "comentario";
+                    return "comentario de una línea";
+                case 'M':
+                    return "comentario multilínea";
                 case 'O':
                     return "operador o signo de puntuación";
                 default:
                     return string.Empty;
+            }
+        }
+
+        void validateAsciiInterval(ref LexemeNode tempNode, char character, int column)
+        {
+            if (character >= 1 && character <= 255)
+            {
+                tempNode.Value += character;
+            }
+            else
+            {
+                var errorDescription = tempNode.Token == 'M' ? "caracter no reconocido en comentario multilínea" : "caracter no reconocido en cadena";
+                tempNode.Token = 'E';
+                finishLexemeNodeAndAddToLexemes(ref tempNode, column, errorDescription);
             }
         }
     }

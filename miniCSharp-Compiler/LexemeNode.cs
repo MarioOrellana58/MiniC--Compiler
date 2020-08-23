@@ -41,7 +41,8 @@ namespace miniCSharp_Compiler
                 H --> hexadecimal
                 X --> Exponential                
                 S --> String
-                C --> Comment
+                C --> // type comment
+                M --> multiline comment
                 O --> Operator
          */
     }
