@@ -9,12 +9,19 @@ namespace miniCSharp_Compiler
     public class LexemeNode
     {
         public string Value { get; set; }
-        public int StartColumn { get; set; }
-        public int EndColumn { get; set; }
-        public int Row { get; set; }
         public char Token { get; set; }
         public string Description { get; set; }
+        public int StartColumn { get; set; }
+        public int EndColumn { get; set; }
+        public int StartRow { get; set; }
+        public int EndRow { get; set; }
 
+        public LexemeNode()
+        {
+            this.Value = string.Empty;
+            this.Description = string.Empty;
+
+        }
         //entrada: hola%2#3estoEsUnID
         //1. Los caracteres no válidos funcionaron como separadores de tokens
         //hola                   --- Identificador columnas 1-4
@@ -35,7 +42,8 @@ namespace miniCSharp_Compiler
                 H --> hexadecimal
                 X --> Exponential                
                 S --> String
-                C --> Comment
+                C --> // type comment
+                M --> multiline comment
                 O --> Operator
          */
     }
