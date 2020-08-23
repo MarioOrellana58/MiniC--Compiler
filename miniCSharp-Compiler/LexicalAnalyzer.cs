@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -68,24 +69,27 @@ namespace miniCSharp_Compiler
         public void ReadFile(string path)
         {
             var row = 0;
+            var tempNode = new LexemeNode();
+            var totalRows = File.ReadLines(path).Count();
+            totalRows = totalRows == 1 ? totalRows : totalRows++;
             using (var sr = new StreamReader(path, Encoding.UTF8))
             {
                 var fileLine = string.Empty;
-                var tempNode = new LexemeNode();
+
                 while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
-                    analyzeLine(fileLine, row, ref tempNode);
+                    analyzeLine(fileLine, row, totalRows, ref tempNode);
                 }
             }
         }
 
-        void analyzeLine(string fileLine, int row, ref LexemeNode tempNode)
+        void analyzeLine(string fileLine, int row, int totalRows, ref LexemeNode tempNode)
         {
             for (int column = 0; column < fileLine.Length; column++)
             {
 
-                if ((fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n') && 
+                if ((fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n') &&
                     (tempNode.Token != 'M') &&
                     (tempNode.Token != 'C') &&
                     (tempNode.Token != 'S'))
@@ -147,6 +151,7 @@ namespace miniCSharp_Compiler
                                 if (fileLine[column + 1] == '*')
                                 {
                                     tempNode.Token = 'M';
+                                    tempNode.StartColumn = -1;
                                     column++;
                                     tempNode.Value += fileLine[column].ToString();
                                 }
@@ -385,7 +390,7 @@ namespace miniCSharp_Compiler
                                 }
                                 break;
                             case 'C':
-                                    validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
+                                validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
                                 break;
                             default:
                                 break;
@@ -398,7 +403,14 @@ namespace miniCSharp_Compiler
                 if (tempNode.Token == 'S')
                 {
                     tempNode.Token = 'E';
-                    finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, "cadena sin finalizar hallada");
+                    if (row != totalRows)
+                    {
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, "cadena sin finalizar hallada");
+                    }
+                    else
+                    {
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, "EOF en una cadena");
+                    }
                 }
                 else
                 {
@@ -408,7 +420,16 @@ namespace miniCSharp_Compiler
             }
             else if (tempNode.Token == 'M')
             {
-                tempNode.Value += '\n';
+                if (row != totalRows)
+                {
+                    tempNode.Value += '\n';
+                }
+                else
+                {
+                    tempNode.EndRow = row;
+                    tempNode.Token = 'E';
+                    finishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, "EOF en un comentario");
+                }
             }
 
 
@@ -419,7 +440,14 @@ namespace miniCSharp_Compiler
             switch (tempNode.Token)
             {
                 case 'E':
-                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
+                    if (tempNode.StartColumn != -1)
+                    {
+                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " posee error el cual es: " + error;
+                    }
+                    else
+                    {
+                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " posee error el cual es: " + error;
+                    }
                     break;
                 case 'I':
                     if (ReservedWords.Contains(tempNode.Value))
@@ -432,7 +460,7 @@ namespace miniCSharp_Compiler
                     }
                     break;
                 case 'M':
-                    tempNode.Description = tempNode.Value + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " y cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
+                    tempNode.Description = tempNode.Value + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " es un(a) " + getTokenDescription(tempNode.Token);
                     break;
                 case 'H':
                     if (tempNode.Value[tempNode.Value.Length - 1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
@@ -448,10 +476,6 @@ namespace miniCSharp_Compiler
                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, "En constantes exponenciales, luego de la E, e o del signo del exponencial debe escribir al menos un número.");
                     }
                     //if this is true then we already have a node to finish
-                    break;
-                case 'S':
-                    break;
-                case 'C':
                     break;
                 default:
                     break;
