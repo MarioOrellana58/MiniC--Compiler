@@ -85,7 +85,10 @@ namespace miniCSharp_Compiler
             for (int column = 0; column < fileLine.Length; column++)
             {
 
-                if ((fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n') && (tempNode.Token != 'M') && (tempNode.Token != 'S'))
+                if ((fileLine[column] == ' ' || fileLine[column] == '\t' || fileLine[column] == '\n') && 
+                    (tempNode.Token != 'M') &&
+                    (tempNode.Token != 'C') &&
+                    (tempNode.Token != 'S'))
                 {
                     if (tempNode.Value != string.Empty)
                     {
@@ -97,6 +100,7 @@ namespace miniCSharp_Compiler
                         fileLine[column] != '_' &&
                         fileLine[column] != '"' &&
                         tempNode.Token != 'M' &&
+                        tempNode.Token != 'C' &&
                         tempNode.Token != 'S')
                 {
                     if (tempNode.Value != string.Empty)
@@ -108,9 +112,9 @@ namespace miniCSharp_Compiler
                     tempNode.Value = fileLine[column].ToString();
                     tempNode.StartColumn = column + 1;
                     tempNode.EndColumn = column + 1;
-                    tempNode.Row = row;
+                    tempNode.StartRow = row;
                     tempNode.Token = 'E';
-                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un caracter no reconocido ";
+                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un caracter no reconocido ";
                     Lexemes.Add(tempNode);
                     tempNode = new LexemeNode();
 
@@ -118,6 +122,7 @@ namespace miniCSharp_Compiler
                 else
                 if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
                         tempNode.Token != 'M' &&
+                        tempNode.Token != 'C' &&
                         tempNode.Token != 'C' &&
                         tempNode.Token != 'O' &&//this validation was made because of double operators                      
                         tempNode.Token != 'N' &&
@@ -134,7 +139,7 @@ namespace miniCSharp_Compiler
                         //if this is true then we are reading the first part of an operator or the start of a comment
                         tempNode.Value = fileLine[column].ToString();
                         tempNode.StartColumn = column + 1;
-                        tempNode.Row = row;
+                        tempNode.StartRow = row;
                         if (fileLine[column] == '/')
                         {
                             if (column + 1 < fileLine.Length)
@@ -142,6 +147,12 @@ namespace miniCSharp_Compiler
                                 if (fileLine[column + 1] == '*')
                                 {
                                     tempNode.Token = 'M';
+                                    column++;
+                                    tempNode.Value += fileLine[column].ToString();
+                                }
+                                else if (fileLine[column + 1] == '/')
+                                {
+                                    tempNode.Token = 'C';
                                     column++;
                                     tempNode.Value += fileLine[column].ToString();
                                 }
@@ -188,7 +199,7 @@ namespace miniCSharp_Compiler
                             //identifier
                             tempNode.Value += fileLine[column].ToString();
                             tempNode.StartColumn = column + 1;
-                            tempNode.Row = row;
+                            tempNode.StartRow = row;
                             tempNode.Token = 'I';
                         }
                         else if (Char.IsDigit(fileLine[column]))
@@ -196,7 +207,7 @@ namespace miniCSharp_Compiler
                             //int constant
                             tempNode.Value = fileLine[column].ToString();
                             tempNode.StartColumn = column + 1;
-                            tempNode.Row = row;
+                            tempNode.StartRow = row;
                             tempNode.Token = 'N';
                         }
                         else if (fileLine[column] == '"')
@@ -204,7 +215,7 @@ namespace miniCSharp_Compiler
                             //string
                             tempNode.Value = fileLine[column].ToString();
                             tempNode.StartColumn = column + 1;
-                            tempNode.Row = row;
+                            tempNode.StartRow = row;
                             tempNode.Token = 'S';
                         }
 
@@ -226,7 +237,7 @@ namespace miniCSharp_Compiler
                                         if (tempNode.Description == string.Empty)
                                         {
                                             tempNode.EndColumn = column;
-                                            tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " identificador de longitud no permitida, se tomaron nada más los primeros 31 caracteres";
+                                            tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " identificador de longitud no permitida, se tomaron nada más los primeros 31 caracteres";
                                         }
                                     }
                                 }
@@ -344,6 +355,7 @@ namespace miniCSharp_Compiler
                                             tempNode.Value += fileLine[column];
                                             column++;
                                             tempNode.Value += fileLine[column];
+                                            tempNode.EndRow = row;
                                             finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
                                         }
                                         else
@@ -371,6 +383,9 @@ namespace miniCSharp_Compiler
                                 {
                                     validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
                                 }
+                                break;
+                            case 'C':
+                                    validateAsciiInterval(ref tempNode, fileLine[column], column + 1);
                                 break;
                             default:
                                 break;
@@ -404,7 +419,7 @@ namespace miniCSharp_Compiler
             switch (tempNode.Token)
             {
                 case 'E':
-                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
+                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " es un lexema no reconozido el error es: " + error;
                     break;
                 case 'I':
                     if (ReservedWords.Contains(tempNode.Value))
@@ -416,13 +431,8 @@ namespace miniCSharp_Compiler
                         tempNode.Token = 'B';
                     }
                     break;
-                case 'R':
-                    break;
-                case 'D':
-                    break;
-                case 'B':
-                    break;
-                case 'N':
+                case 'M':
+                    tempNode.Description = tempNode.Value + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " y cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
                     break;
                 case 'H':
                     if (tempNode.Value[tempNode.Value.Length - 1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
@@ -449,7 +459,7 @@ namespace miniCSharp_Compiler
             tempNode.EndColumn = tempNode.EndColumn == 0 ? column : tempNode.EndColumn;
             if (tempNode.Description == string.Empty && error == string.Empty && tempNode.Token != 'E')
             {
-                tempNode.Description = tempNode.Value + " en la línea " + tempNode.Row + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
+                tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
             }
             if (tempNode.Token != '\0')
             {
