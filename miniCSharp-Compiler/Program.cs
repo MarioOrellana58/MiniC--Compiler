@@ -17,7 +17,7 @@ namespace miniCSharp_Compiler
                 fileExists = File.Exists(path) ? true : false;
             } while (!fileExists);
 
-            
+
             var resultFilePath = "C:/lexicalAnalyzer/" + Path.GetFileNameWithoutExtension(path) + ".out";
 
             var analyze = new LexicalAnalyzer();
@@ -33,6 +33,7 @@ namespace miniCSharp_Compiler
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("¿Desea imprimir su documento? Presione 'y' para sí y otra tecla para no");
             Console.WriteLine("Esto creará un archivo portable, su ubicación es: C:/lexicalAnalyzer" + Path.ChangeExtension(path, ".pdf"));
+
             if (Console.ReadKey().Key == ConsoleKey.Y)
             {
                 Console.WriteLine("\n");
@@ -44,6 +45,7 @@ namespace miniCSharp_Compiler
             }
             else
             {
+                Console.WriteLine("\n");
                 Console.WriteLine("Ten un feliz día :D");
             }
 
@@ -54,8 +56,3 @@ namespace miniCSharp_Compiler
 
     }
 }
-
-
-
-
-
