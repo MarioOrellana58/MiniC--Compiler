@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -66,8 +67,9 @@ namespace miniCSharp_Compiler
             ReservedWords.Add("Console");
             ReservedWords.Add("WriteLine");
         }
-        public void ReadFile(string path)
+        public void ReadFileAndAnalyzeDocument(string path)
         {
+            
             var row = 0;
             var tempNode = new LexemeNode();
             var totalRows = File.ReadLines(path).Count();
@@ -79,9 +81,14 @@ namespace miniCSharp_Compiler
                 while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
+                    if (row == 42)
+                    {
+                        int a = 5;
+                    }
                     analyzeLine(fileLine, row, totalRows, ref tempNode);
                 }
             }
+            
         }
 
         void analyzeLine(string fileLine, int row, int totalRows, ref LexemeNode tempNode)
@@ -127,7 +134,7 @@ namespace miniCSharp_Compiler
                 if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
                         tempNode.Token != 'M' &&
                         tempNode.Token != 'C' &&
-                        tempNode.Token != 'C' &&
+                        tempNode.Token != 'S' &&                        
                         tempNode.Token != 'O' &&//this validation was made because of double operators                      
                         tempNode.Token != 'N' &&
                         tempNode.Token != 'X')
@@ -536,6 +543,44 @@ namespace miniCSharp_Compiler
                 var errorDescription = tempNode.Token == 'M' ? "caracter no reconocido en comentario multilínea" : "caracter no reconocido en cadena";
                 tempNode.Token = 'E';
                 finishLexemeNodeAndAddToLexemes(ref tempNode, column, errorDescription);
+            }
+        }
+
+        public void PrintResultAndSaveToFile(string path)
+        {
+
+            if (!Directory.Exists("C:/lexicalAnalyzer/"))
+            {
+                Directory.CreateDirectory("C:/lexicalAnalyzer/");
+            }
+            else
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+
+            using (var sw = File.CreateText(path))
+            {                
+                foreach (var lexeme in Lexemes)
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    switch (lexeme.Token)
+                    {
+                        case 'E':
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            break;
+                        default:
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            break;
+                    }
+                    Console.WriteLine(lexeme.Description);
+                    Console.WriteLine("\n");
+
+                    sw.WriteLine(lexeme.Description);
+                    sw.WriteLine("\n");
+                }
             }
         }
     }

@@ -12,13 +12,31 @@ namespace miniCSharp_Compiler
     {
         static void Main(string[] args)
         {
+            var fileExists = false;
+            var path = string.Empty;
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("Ingrese la ruta al archivo que desea analizar");
+                path = Console.ReadLine();
+                fileExists = File.Exists(path) ? true : false;
+            } while (!fileExists);
 
-            var path = "pathToFile.txt";//implement IDE for user
-            var analyze = new LexicalAnalyzer();
-            analyze.ReadFile(path);
             
+            var resultFilePath = "C:/lexicalAnalyzer/" + Path.ChangeExtension(path, ".out");
+
+            var analyze = new LexicalAnalyzer();
+            analyze.ReadFileAndAnalyzeDocument(path);
+
+            analyze.PrintResultAndSaveToFile(resultFilePath);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;    
+            Console.WriteLine("Tu archivo de salida se encuentra en " + resultFilePath);
+            Console.ReadKey();
             
         }
+
+        
     }
 }
 
