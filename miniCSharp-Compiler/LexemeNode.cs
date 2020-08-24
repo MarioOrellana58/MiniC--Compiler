@@ -20,19 +20,9 @@ namespace miniCSharp_Compiler
         {
             this.Value = string.Empty;
             this.Description = string.Empty;
-
         }
-        //entrada: hola%2#3estoEsUnID
-        //1. Los caracteres no válidos funcionaron como separadores de tokens
-        //hola                   --- Identificador columnas 1-4
-        //%                      --- Error en columna 5, el caracter % no es reconocido
-        //2                      --- Constante  columnas 6-6
-        //#                      --- Error en columna 7, el caracter # no es reconocido, se omitió
-        //3                      --- Constante columnas 8-8
-        //estoEsUnID             --- Identificador columnas 9-18
-
         /*
-            Token:
+            Tokens code:
                 E --> Error
                 I --> Identifier
                 R --> Reserved word
