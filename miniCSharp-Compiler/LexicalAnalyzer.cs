@@ -1,12 +1,11 @@
-﻿using System;
-using System.CodeDom;
+﻿using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace miniCSharp_Compiler
 {
@@ -81,10 +80,6 @@ namespace miniCSharp_Compiler
                 while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
-                    if (row == 42)
-                    {
-                        int a = 5;
-                    }
                     analyzeLine(fileLine, row, totalRows, ref tempNode);
                 }
             }
@@ -125,7 +120,7 @@ namespace miniCSharp_Compiler
                     tempNode.EndColumn = column + 1;
                     tempNode.StartRow = row;
                     tempNode.Token = 'E';
-                    tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un caracter no reconocido ";
+                    tempNode.Description = tempNode.Value + "        ---         " + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + tempNode.EndColumn + " es un caracter no reconocido ";
                     Lexemes.Add(tempNode);
                     tempNode = new LexemeNode();
 
@@ -449,11 +444,11 @@ namespace miniCSharp_Compiler
                 case 'E':
                     if (tempNode.StartColumn != -1)
                     {
-                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " posee error el cual es: " + error;
+                        tempNode.Description = tempNode.Value + "        ---         " + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " posee error el cual es: " + error;
                     }
                     else
                     {
-                        tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " posee error el cual es: " + error;
+                        tempNode.Description = tempNode.Value + "        ---         " + " en la línea " + tempNode.StartRow + " posee error el cual es: " + error;
                     }
                     break;
                 case 'I':
@@ -467,7 +462,7 @@ namespace miniCSharp_Compiler
                     }
                     break;
                 case 'M':
-                    tempNode.Description = tempNode.Value + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " es un(a) " + getTokenDescription(tempNode.Token);
+                    tempNode.Description = tempNode.Value + "        ---         " + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " es un(a) " + getTokenDescription(tempNode.Token);
                     break;
                 case 'H':
                     if (tempNode.Value[tempNode.Value.Length - 1] == 'x' || tempNode.Value[tempNode.Value.Length - 1] == 'X')
@@ -490,7 +485,7 @@ namespace miniCSharp_Compiler
             tempNode.EndColumn = tempNode.EndColumn == 0 ? column : tempNode.EndColumn;
             if (tempNode.Description == string.Empty && error == string.Empty && tempNode.Token != 'E')
             {
-                tempNode.Description = tempNode.Value + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
+                tempNode.Description = tempNode.Value + "        ---         " + " en la línea " + tempNode.StartRow + " cols " + tempNode.StartColumn + "-" + column + " es un(a) " + getTokenDescription(tempNode.Token);
             }
             if (tempNode.Token != '\0')
             {
@@ -582,6 +577,61 @@ namespace miniCSharp_Compiler
                     sw.WriteLine("\n");
                 }
             }
+        }
+
+        public void PrintFile(string path)
+        {
+            
+
+            try
+            {
+                var pdfPath = Path.ChangeExtension(path, ".pdf");
+                //convert to pdf
+                //Read the Data from Input File
+
+                var rdr = new StreamReader(path);
+
+                //Create a New instance on Document Class
+
+                var doc = new Document();
+
+                //Create a New instance of PDFWriter Class for Output File
+
+                PdfWriter.GetInstance(doc, new FileStream(pdfPath, FileMode.Create));
+
+                //Open the Document
+
+                doc.Open();
+
+                //Add the content of Text File to PDF File
+
+                doc.Add(new Paragraph(rdr.ReadToEnd()));
+
+                //Close the Document
+
+                doc.Close();
+
+                //Open the Converted PDF File
+
+                Process.Start(pdfPath);
+
+                var p = new Process();
+                p.StartInfo = new ProcessStartInfo()
+                {
+                    CreateNoWindow = true,
+                    Verb = "print",
+                    FileName = pdfPath,
+                    Arguments = pdfPath
+                };
+                p.Start();
+                Console.WriteLine("El archivo se está imprimiendo... :D");                
+
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("La impresión del archivo falló :(");
+            }
+
         }
     }
 }
