@@ -3,7 +3,9 @@
 > José Eduardo Tejeda León             1097218
 > Mario Estuardo Gómez Orellana     1020618
 
-<a id="raw-url" href="https://doc-0g-1c-docs.googleusercontent.com/docs/securesc/fvh9gj0kbhgi3khf1hns4fj12b4nkl63/djh4vfenl10b376udcr51v02a99ta1k6/1598332650000/02090919406823285392/02090919406823285392/1LuXkIy3qcK6N0ac09yaUVioggTmSz76k?e=download&authuser=0">Descargar ejecutable</a>
+
+<a href="https://doc-0g-1c-docs.googleusercontent.com/docs/securesc/fvh9gj0kbhgi3khf1hns4fj12b4nkl63/djh4vfenl10b376udcr51v02a99ta1k6/1598332650000/02090919406823285392/02090919406823285392/1LuXkIy3qcK6N0ac09yaUVioggTmSz76k?e=download&authuser=0" download="Descargar ejecutable"><img src="https://cdn1.iconfinder.com/data/icons/arrows-vol-1-4/24/download_1-512.png" /></a>
+
 
 ![](https://media1.giphy.com/media/W5TVax7yZ79xhfpwei/giphy.gif)
 
@@ -19,11 +21,18 @@ Programas adicionales si se desea imprimir el archivo de salida: Adobe Acrobat R
 
 Para instalar la librería de iTextSharp sigue los siguientes pasos.
 
+
+
 #Dirígete al manejador de NuGets
+
+
 ![image](https://drive.google.com/uc?export=view&id=1SxLEJA44EppRLstOHSCy3FXSBLyK1KNX)
 
 
+
 #Instala la librería
+
+
 ![image](https://drive.google.com/uc?export=view&id=1phPiR__vSdldWj1qiPsdT66oi6gSjE0I)
 
 
