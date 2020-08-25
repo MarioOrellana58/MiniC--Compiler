@@ -234,3 +234,25 @@ Comentarios :
 (/*)(ASCII(1-255)|(\n))*(*/)
 ```
 
+Palabras reservadas : 
+```sh
+void 
+int 
+double 
+bool 
+string 
+class 
+const 
+interface 
+null 
+this 
+for 
+while 
+foreach 
+if 
+else 
+return 
+break 
+New 
+NewArray 
+```
