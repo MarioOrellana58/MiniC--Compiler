@@ -4,7 +4,7 @@
 > Mario Estuardo Gómez Orellana     1020618
 
 
-<a href="https://drive.google.com/file/d/1LuXkIy3qcK6N0ac09yaUVioggTmSz76k/view?usp=sharing" download="Descargar ejecutable"><img src="https://www.iconarchive.com/download/i99352/dtafalonso/android-lollipop/Downloads.ico" /></a>
+<a href="https://drive.google.com/file/d/1LuXkIy3qcK6N0ac09yaUVioggTmSz76k/view?usp=sharing" download="Descargar ejecutable"><img src="https://drive.google.com/uc?export=view&id=1PleixJ-cUH_VNSZluQ62aYkelo0mvldR" /></a>
 
 
 ![](https://media1.giphy.com/media/W5TVax7yZ79xhfpwei/giphy.gif)
