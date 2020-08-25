@@ -203,9 +203,13 @@ Este analizador ha sido depurado con múltiple cantidad de archivos de prueba po
 
 ## Expresiones regulares de la gramática
 
-Identificadores: ((a-z)| (A-Z) )((A-Z)|(a-z)|(0-9)|(_))*
+Identificadores: 
+```sh
+((a-z)| (A-Z) )((A-Z)|(a-z)|(0-9)|(_))*
+```
 
 Tipos de constantes:
+```sh
 Entero Hexa:   0 (x|X)(0-9|a-f|A-F)+
  
 Entero: Dec (0-9)+
@@ -217,12 +221,16 @@ Exponencial  (0-9)+ (.)(0-9)*(e|E)(+|-)?(0-9)+
 Double (0-9)+ (.)(0-9)*
 
 Constante tipo string: (“)( ASCII(1-255)(”)
+```
 
 Operadores de la gramática
-
+```sh
 + - * / % < <= > >= = == != && || ! ; , . [ ] ( ) { } [] () {}
+```
 
 Comentarios : 
+```sh
 (//)(ASCII(1-255)*)
-	(/*)(ASCII(1-255)|(\n))*(*/)
+(/*)(ASCII(1-255)|(\n))*(*/)
+```
 
