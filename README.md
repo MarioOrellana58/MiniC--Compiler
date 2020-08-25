@@ -199,7 +199,7 @@ En dado caso todo lo anterior no se cumpla significa que ya se está analizando 
 
 ## Justificación
 
-Este analizador ha sido depurado con múltiple cantidad de archivos de prueba por lo tanto es un analizador robusto y 100% funcional para la gramática explicada en la sección de “Explicación detallada del flujo del código”
+Este analizador ha sido depurado con múltiple cantidad de archivos de prueba por lo tanto es un analizador robusto y 100% funcional para la gramática explicada en la sección de “Explicación detallada del flujo del código” que obedece a las expresiones regulares de abajo.
 
 ## Expresiones regulares de la gramática
 
