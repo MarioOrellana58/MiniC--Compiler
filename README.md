@@ -21,13 +21,13 @@ Para instalar la librería de iTextSharp sigue los siguientes pasos.
 
 Dirígete al manejador de NuGets
 ```sh
-![Primeros pasos](https://drive.google.com/file/d/1SxLEJA44EppRLstOHSCy3FXSBLyK1KNX/view?usp=sharing)
+![image](https://drive.google.com/uc?export=view&id=1SxLEJA44EppRLstOHSCy3FXSBLyK1KNX)
 ```
 
 
 Instala la librería
 ```sh
-![Últimos pasos](https://drive.google.com/file/d/1phPiR__vSdldWj1qiPsdT66oi6gSjE0I/view?usp=sharing)
+![image](https://drive.google.com/uc?export=view&id=1phPiR__vSdldWj1qiPsdT66oi6gSjE0I)
 ```
 
 
@@ -179,11 +179,11 @@ Dentro de este procedimiento se recorre cada carácter de la línea. En cada car
 
 Si no es un separador, se pregunta si no está dentro de una lista definida de operadores y signos de puntuación (“OperatorsAndPuncChars”), si no es una letra o un dígito, si no es un guión bajo (“_”) o una comilla (‘“‘), si cumple con esto se procede a preguntar si el nodo actual ya contiene un lexema o si este está vacío. De no estar vacío se llama al procedimiento “finishLexemeNodeAndAddToLexemes” y luego se procede a escribir un error de “Carácter no reconocido” dado que no es válido para la gramática.  
 
-	La tercera validación pertenece a los caracteres que sean reconocidos como operadores de la gramática y no estén dentro de una cadena o comentario, por las mismas razones de la segunda validación se valida si el nodo está vacío, en dado caso no lo esté se guarda y se hace un retroceso para volver analizar el carácter que ya se había leído esto dado que al momento de que entre aquí otra vez y el nodo esté vacío ya se registrará el caracter leído como un operador. Dentro de este método se valida si es el comienzo de algún tipo de comentario viendo hacia adelante un carácter o bien que se trate de un fin de comentario sin emparejar.
+La tercera validación pertenece a los caracteres que sean reconocidos como operadores de la gramática y no estén dentro de una cadena o comentario, por las mismas razones de la segunda validación se valida si el nodo está vacío, en dado caso no lo esté se guarda y se hace un retroceso para volver analizar el carácter que ya se había leído esto dado que al momento de que entre aquí otra vez y el nodo esté vacío ya se registrará el caracter leído como un operador. Dentro de este método se valida si es el comienzo de algún tipo de comentario viendo hacia adelante un carácter o bien que se trate de un fin de comentario sin emparejar.
 
 Si no cumple con ninguna de las condiciones previas, se pregunta si el lexema actual está vacío, si está vacío se procede a evaluar dentro de una estructura selectiva que representa expresiones regulares. Al momento de encontrar la expresión cuyo inicio sea el carácter actual, se propone un token al lexema y se agrega al lexema el carácter actual. 
 
-	En dado caso todo lo anterior no se cumpla significa que ya se está analizando un lexema, esto se hace mediante una estructura selectiva que presenta comportamiento de un autómata finito determinista, este se estructuró analizando la composición de cada lexema, armando una expresión regular para el mismo y llevando esta expresión a la estructura selectiva. En esta sección se maneja la mayor parte de errores ya que con el flujo del autómata se determina el token definitivo del lexema. Con esto se puede analizar si el lexema cumple con las condiciones de la expresión regular definida para él.
+En dado caso todo lo anterior no se cumpla significa que ya se está analizando un lexema, esto se hace mediante una estructura selectiva que presenta comportamiento de un autómata finito determinista, este se estructuró analizando la composición de cada lexema, armando una expresión regular para el mismo y llevando esta expresión a la estructura selectiva. En esta sección se maneja la mayor parte de errores ya que con el flujo del autómata se determina el token definitivo del lexema. Con esto se puede analizar si el lexema cumple con las condiciones de la expresión regular definida para él.
 
 ## Justificación
 
