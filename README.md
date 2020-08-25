@@ -19,16 +19,13 @@ Programas adicionales si se desea imprimir el archivo de salida: Adobe Acrobat R
 
 Para instalar la librería de iTextSharp sigue los siguientes pasos.
 
-Dirígete al manejador de NuGets
-```sh
+#Dirígete al manejador de NuGets
 ![image](https://drive.google.com/uc?export=view&id=1SxLEJA44EppRLstOHSCy3FXSBLyK1KNX)
-```
 
 
-Instala la librería
-```sh
+#Instala la librería
 ![image](https://drive.google.com/uc?export=view&id=1phPiR__vSdldWj1qiPsdT66oi6gSjE0I)
-```
+
 
 
 
