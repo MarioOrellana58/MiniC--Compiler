@@ -20,6 +20,7 @@
 Framework: .NET Framework 4.7.2
 
 Librerías adicionales si se desea imprimir el archivo de salida: iTextSharp
+
 Programas adicionales si se desea imprimir el archivo de salida: Adobe Acrobat Reader DC https://get.adobe.com/es/reader/ 
 
 
