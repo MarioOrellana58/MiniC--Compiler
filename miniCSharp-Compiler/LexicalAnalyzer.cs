@@ -105,11 +105,11 @@ namespace miniCSharp_Compiler
                 }
                 else
                 if (!OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
-                        !Char.IsLetterOrDigit(fileLine[column]) &&                        
+                        !Char.IsLetterOrDigit(fileLine[column]) &&
                         fileLine[column] != '_' &&
                         fileLine[column] != '"' &&
                         isNotACommentOrStr)
-                {                    
+                {
                     if (tempNode.Value != string.Empty)
                     {
                         finishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
@@ -119,11 +119,39 @@ namespace miniCSharp_Compiler
                         tempNode = new LexemeNode();
                     }
 
+
                     tempNode.Value += fileLine[column];
                     tempNode.StartColumn = column + 1;
                     tempNode.StartRow = row;
-                    tempNode.Token = 'E';
-                    finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, "es un caracter no reconocido");
+
+                    if (column + 1 < fileLine.Length)
+                    {
+                        //look ahead
+                        if (fileLine[column + 1] == '&' && fileLine[column] == '&')
+                        {
+                            tempNode.Token = 'O';
+                            column++;
+                            tempNode.Value += fileLine[column];
+                            finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                        }
+                        else if (fileLine[column + 1] == '|' && fileLine[column] == '|')
+                        {
+                            tempNode.Token = 'O';
+                            column++;
+                            tempNode.Value += fileLine[column];
+                            finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                        }
+                        else
+                        {
+                            tempNode.Token = 'E';
+                            finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, "es un caracter no reconocido");
+                        }
+                    }
+                    else
+                    {
+                        tempNode.Token = 'E';
+                        finishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, "es un caracter no reconocido");
+                    }
                 }
                 else
                 if (OperatorsAndPuncChars.Contains(fileLine[column].ToString()) &&
@@ -453,7 +481,7 @@ namespace miniCSharp_Compiler
                         }
                         else
                         {
-                            tempNode.Description = tempNode.Value + "        ---         " + " en la línea " + tempNode.StartRow + " posee error el cual es: " + error;
+                            tempNode.Description = tempNode.Value + "        ---         " + " en las líneas " + tempNode.StartRow + "-" + tempNode.EndRow + " posee error el cual es: " + error;
                         }
                         break;
                     case 'I':
@@ -563,23 +591,33 @@ namespace miniCSharp_Compiler
 
             using (var sw = File.CreateText(path))
             {
+                var isFileOk = true;
                 foreach (var lexeme in Lexemes)
                 {
                     Console.BackgroundColor = ConsoleColor.Black;
-                    switch (lexeme.Token)
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    if (lexeme.Token == 'E')
                     {
-                        case 'E':
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            break;
-                        default:
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            break;
+                        isFileOk = false;
+                        Console.WriteLine(lexeme.Description);
+                        Console.WriteLine("\n");
                     }
-                    Console.WriteLine(lexeme.Description);
-                    Console.WriteLine("\n");
 
-                    sw.WriteLine(lexeme.Description);
-                    sw.WriteLine("\n");
+                    if (lexeme.Token != 'C' && lexeme.Token != 'M')
+                    {
+                        sw.WriteLine(lexeme.Description);
+                        sw.WriteLine("\n");
+                    }
+
+                }
+
+                if (isFileOk)
+                {
+                    Console.WriteLine("\n");
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("El archivo no posee ningún error :D");
+                    Console.WriteLine("\n");
                 }
             }
         }

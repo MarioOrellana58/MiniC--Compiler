@@ -43,12 +43,20 @@ namespace miniCSharp_Compiler
                 Console.ReadKey();
                 analyze.PrintFile(resultFilePath);
             }
-            else
+
+            Console.WriteLine("\n");
+            if (DateTime.Now.Hour < 12)
             {
-                Console.WriteLine("\n");
                 Console.WriteLine("Ten un feliz día :D");
             }
-
+            else if (DateTime.Now.Hour < 18)
+            {
+                Console.WriteLine("Ten una feliz tarde :D");
+            }
+            else
+            {
+                Console.WriteLine("Ten una feliz noche :D");
+            }
             Console.ReadKey();
 
         }
