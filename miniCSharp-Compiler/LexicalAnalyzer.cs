@@ -622,10 +622,26 @@ namespace miniCSharp_Compiler
             }
         }
 
-        public void PrintFile(string path)
+        public string PrintFile(string path)
         {
-
-
+            var fileIsOpen = true;
+            do
+            {
+                if (File.Exists(Path.ChangeExtension(path, ".pdf")))
+                {
+                    try
+                    {
+                        File.Delete(Path.ChangeExtension(path, ".pdf"));
+                        fileIsOpen = false;
+                    }
+                    catch (Exception)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Cierra el archivo " + Path.ChangeExtension(path, ".pdf" + " D: luego presiona enter :D"));
+                        Console.ReadKey();
+                    }
+                }
+            } while (fileIsOpen);
             try
             {
                 var pdfPath = Path.ChangeExtension(path, ".pdf");
@@ -667,12 +683,13 @@ namespace miniCSharp_Compiler
                     Arguments = pdfPath
                 };
                 p.Start();
-                Console.WriteLine("El archivo se está imprimiendo... :D");
+                Console.ForegroundColor = ConsoleColor.Green;
+                return ("El archivo se ha añadido a tu cola de impresión... :D");
 
             }
             catch (Exception)
             {
-                Console.WriteLine("La impresión del archivo falló :(");
+                return ("La impresión del archivo falló :(");
             }
 
         }
