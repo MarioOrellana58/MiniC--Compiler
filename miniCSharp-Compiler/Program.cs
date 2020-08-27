@@ -81,7 +81,8 @@ namespace miniCSharp_Compiler
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine(goodbyeMessage + "\n");
                 Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine(!englishVersion ? "Esta consola se cerrará en " : "This terminal will close in " + i.ToString()); Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine((!englishVersion ? "Esta consola se cerrará en " : "This terminal will close in ") + i.ToString()); 
+                Console.ForegroundColor = ConsoleColor.Green;
 
                 Thread.Sleep(1000);
             }
