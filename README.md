@@ -186,7 +186,7 @@ b    	---      	en la línea 10 cols 8-8 es un(a) identificador
 
 ## Explicación detallada del flujo del código y manejo de errores
 
-Dentro de la clase de “LexicalAnalyzer” en el procedimiento “ReadFileAndAnalyzeDocument”, en este procedimiento se crea un nodo que contendrá toda la información necesaria para poder mostrar el lexema luego del análisis (Valor, token, descripción, columna de inicio y fin, lína de inicio y fin) luego de llenar los datos del nodo  se inicia la lectura del archivo de entrada línea por línea. Cada línea es enviada al procedimiento “analyzeLine”.
+Dentro de la clase de “LexicalAnalyzer” en el procedimiento “ReadFileAndAnalyzeDocument”, se crea un nodo que contendrá toda la información necesaria para poder mostrar el lexema luego del análisis (Valor, token, descripción, columna de inicio y fin, lína de inicio y fin) luego de crear el nodo  se inicia la lectura del archivo de entrada línea por línea. Cada línea es enviada al procedimiento “analyzeLine”.
 
 Dentro de este procedimiento se recorre cada carácter de la línea. En cada carácter se pregunta si es algún separador de lexema (espacio, tab horizontal o nueva línea) de serlo se llama al procedimiento  “finishLexemeNodeAndAddToLexemes” que agrega lo que se tenga hasta ese momento en una lista de lexemas (“Lexemes”) y se crea un nuevo nodo para continuar con el siguiente carácter.
 
