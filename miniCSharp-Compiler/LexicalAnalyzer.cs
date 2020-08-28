@@ -74,7 +74,7 @@ namespace miniCSharp_Compiler
         {
             var row = 0;
             var tempNode = new LexemeNode();
-            var totalRows = File.ReadLines(path).Count();
+            var totalRows = File.ReadAllLines(path).Length;
             //after 1 the .Count() method starts substracting a unit to the total lines count
             totalRows = totalRows == 1 ? totalRows : totalRows++;
             using (var sr = new StreamReader(path, Encoding.UTF8))
@@ -359,14 +359,52 @@ namespace miniCSharp_Compiler
                                 }
                                 else if (fileLine[column] == 'e' || fileLine[column] == 'E')
                                 {
-                                    tempNode.Value += fileLine[column];
-                                    tempNode.Token = 'X';
+                                    if (column + 1 < fileLine.Length)
+                                    {
+                                        if (fileLine[column + 1] == '+' ||
+                                            fileLine[column + 1] == '-')
+                                        {
+                                            if (column + 2 < fileLine.Length)
+                                            {
+                                                if (!char.IsDigit(fileLine[column + 2]))
+                                                {
+                                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                                    column--;//backtrack
+                                                }
+                                                else
+                                                {
+                                                    tempNode.Value += fileLine[column];
+                                                    tempNode.Token = 'X';
+                                                }
+                                            }
+                                            else
+                                            {
+                                                FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                                column--;//backtrack
+                                            }
+                                        }
+                                        else if (char.IsDigit(fileLine[column + 1]))
+                                        {
+                                            tempNode.Value += fileLine[column];
+                                            tempNode.Token = 'X';
+                                        }
+                                        else
+                                        {
+                                            FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                            column--;//backtrack
+                                        }
+                                    }
+                                    else
+                                    {
+                                        FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                        column--;//backtrack
+                                    }
                                 }
                                 else
                                 {
                                     //if this is true then we already have a node to finish
-                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                                     column--;//backtrack
+                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
                                 }
                                 break;
                             case 'X':
@@ -422,7 +460,7 @@ namespace miniCSharp_Compiler
                                 if (fileLine[column] == '"')
                                 {
                                     tempNode.Value += fileLine[column];
-                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
                                 }
                                 else
                                 {
@@ -466,7 +504,11 @@ namespace miniCSharp_Compiler
                 }
                 else
                 {
-                    tempNode.EndRow = row;
+                    if (fileLine == string.Empty)
+                    {
+                        totalRows++;
+                    }
+                    tempNode.EndRow = totalRows;
                     tempNode.Token = 'E';
                     FinishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, !EnglishVersion ? "EOF en un comentario" : "EOF found in a comment");
                 }
@@ -542,7 +584,10 @@ namespace miniCSharp_Compiler
                                               : "        ---         " + " in the line " + tempNode.StartRow + " col " + tempNode.StartColumn + "-" + column + " is a(n) " + GetTokenDescription(tempNode.Token);
                 }
                 tempNode.Description += message;
-                Lexemes.Add(tempNode);
+                if (tempNode.Token != '\0')
+                {
+                    Lexemes.Add(tempNode);
+                }
                 tempNode = new LexemeNode();
             }
         }
@@ -566,7 +611,7 @@ namespace miniCSharp_Compiler
                 case 'H':
                     return !EnglishVersion ? "constante hexadecimal" : "hexadecimal constant";
                 case 'X':
-                    return !EnglishVersion ? "constante exponencial" : "exponential constant";
+                    return !EnglishVersion ? "constante double exponencial" : "double exponential constant";
                 case 'S':
                     return !EnglishVersion ? "cadena de caracteres (string)" : "string constant";
                 case 'C':
