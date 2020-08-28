@@ -70,20 +70,36 @@ namespace miniCSharp_Compiler
 
             this.EnglishVersion = englishVersion;
         }
+        int CountFileLines(string path)
+        {
+            using (StreamReader sr = new StreamReader(path))
+            {
+                string[] lines;
+                var WholeFile = sr.ReadToEnd();
+                lines = WholeFile.Split('\n');
+                return lines.Count(); 
+            }
+        }
         public void ReadFileAndAnalyzeDocument(string path)
         {
             var row = 0;
             var tempNode = new LexemeNode();
-            var totalRows = File.ReadAllLines(path).Length;
-            //after 1 the .Count() method starts substracting a unit to the total lines count
-            totalRows = totalRows == 1 ? totalRows : totalRows++;
+            var totalRows = CountFileLines(path);           
+
             using (var sr = new StreamReader(path, Encoding.UTF8))
             {
                 var fileLine = string.Empty;
+
                 while ((fileLine = sr.ReadLine()) != null)
                 {
                     row++;
                     AnalyzeLine(fileLine, row, totalRows, ref tempNode);
+                }
+                if (tempNode.Token == 'M')
+                {
+                    tempNode.Token = 'E';
+                    tempNode.EndRow = totalRows;
+                    FinishLexemeNodeAndAddToLexemes(ref tempNode, totalRows, !EnglishVersion ? "EOF en un comentario" : "EOF found in a comment");
                 }
             }
 
@@ -257,6 +273,14 @@ namespace miniCSharp_Compiler
                             tempNode.StartRow = row;
                             tempNode.Token = 'S';
                         }
+                        else
+                        {
+                            tempNode.Value += fileLine[column];
+                            tempNode.StartColumn = column + 1;
+                            tempNode.StartRow = row;
+                            tempNode.Token = 'E';
+                            FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, !EnglishVersion ? "es un caracter no reconocido" : "unrecognized character");
+                        }
 
                     }
                     else
@@ -318,8 +342,28 @@ namespace miniCSharp_Compiler
                                 }
                                 else if ((fileLine[column] == 'x' || fileLine[column] == 'X') && tempNode.Value == "0")
                                 {
-                                    tempNode.Value += fileLine[column];
-                                    tempNode.Token = 'H';
+                                    if (column + 1 < fileLine.Length)
+                                    {
+                                        var asciiCode = (int)(char)fileLine[column + 1];                                        
+                                        if (Char.IsDigit(fileLine[column + 1]) || 
+                                            (asciiCode >= 65 && asciiCode <= 70) ||
+                                            ((asciiCode >= 97 && asciiCode <= 102)))
+                                        {
+                                            tempNode.Value += fileLine[column];
+                                            tempNode.Token = 'H';
+                                        }
+                                        else
+                                        {
+                                            FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                            column--;//backtrack
+                                        }
+                                    }
+                                    else
+                                    {
+                                        FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                        column--;//backtrack
+                                    }
+                                    
                                 }
                                 else if (fileLine[column] == '.')
                                 {
@@ -350,6 +394,11 @@ namespace miniCSharp_Compiler
                                 else if (char.IsDigit(fileLine[column]))
                                 {
                                     tempNode.Value += fileLine[column];
+                                }
+                                else
+                                {
+                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column, string.Empty);
+                                    column--;
                                 }
                                 break;
                             case 'D':
@@ -503,11 +552,7 @@ namespace miniCSharp_Compiler
                     tempNode.Value += '\n';
                 }
                 else
-                {
-                    if (fileLine == string.Empty)
-                    {
-                        totalRows++;
-                    }
+                {                    
                     tempNode.EndRow = totalRows;
                     tempNode.Token = 'E';
                     FinishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, !EnglishVersion ? "EOF en un comentario" : "EOF found in a comment");
@@ -659,7 +704,15 @@ namespace miniCSharp_Compiler
             {
                 if (File.Exists(path))
                 {
-                    File.Delete(path);
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch (Exception)
+                    {
+
+                        throw;
+                    }
                 }
             }
 
