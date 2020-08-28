@@ -4,9 +4,9 @@
 > Mario Estuardo Gómez Orellana     1020618
 
 
+[English version](https://github.com/MarioOrellana58/MiniC--Compiler/blob/master/README-en.md)
 
-
-<a href="https://drive.google.com/file/d/1LuXkIy3qcK6N0ac09yaUVioggTmSz76k/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/zSNLWLg/3.png" /></a>
+<a href="https://drive.google.com/file/d/1_QoMg-7Bq7fSuKf3kKp38MXlGy0VWKzO/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/zSNLWLg/3.png" /></a>
 
 
 
@@ -200,7 +200,7 @@ En dado caso todo lo anterior no se cumpla significa que ya se está analizando 
 
 ## Justificación
 
-Este analizador ha sido depurado con múltiple cantidad de archivos de prueba por lo tanto es un analizador robusto y 100% funcional para la gramática explicada en la sección de “Explicación detallada del flujo del código” que obedece a las expresiones regulares de abajo.
+Este analizador ha sido depurado con múltiples archivos de prueba por lo tanto es un analizador robusto y 100% funcional para la gramática explicada en la sección de “Explicación detallada del flujo del código” que obedece a las expresiones regulares de abajo.
 
 ## Expresiones regulares de la gramática
 
