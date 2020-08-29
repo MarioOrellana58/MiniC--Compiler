@@ -6,7 +6,7 @@
 
 [Regresar versión en español](https://github.com/MarioOrellana58/MiniC--Compiler)
 
-<a href="https://drive.google.com/file/d/1_QoMg-7Bq7fSuKf3kKp38MXlGy0VWKzO/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/LhqG3hP/4.jpg" /></a>
+<a href="https://drive.google.com/file/d/18B-DVnjRqm_pjGAUgKhFbL_qr_79WvY5/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/LhqG3hP/4.jpg" /></a>
 
 
 
