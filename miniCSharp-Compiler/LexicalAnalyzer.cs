@@ -483,12 +483,20 @@ namespace miniCSharp_Compiler
                                     if (column + 1 < fileLine.Length)
                                     {
                                         if (fileLine[column + 1] == '/')
-                                        {
+                                        {                                            
                                             tempNode.Value += fileLine[column];
                                             column++;
                                             tempNode.Value += fileLine[column];
                                             tempNode.EndRow = row;
-                                            FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                                            if (tempNode.Description != string.Empty)
+                                            {
+                                                tempNode.Token = 'E';
+                                                FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, tempNode.Description);
+                                            }
+                                            else
+                                            {
+                                                FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                                            }
                                         }
                                         else
                                         {
@@ -509,7 +517,15 @@ namespace miniCSharp_Compiler
                                 if (fileLine[column] == '"')
                                 {
                                     tempNode.Value += fileLine[column];
-                                    FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                                    if (tempNode.Description != string.Empty)
+                                    {
+                                        tempNode.Token = 'E';
+                                        FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, tempNode.Description);
+                                    }
+                                    else
+                                    {
+                                        FinishLexemeNodeAndAddToLexemes(ref tempNode, column + 1, string.Empty);
+                                    }
                                 }
                                 else
                                 {
@@ -537,6 +553,18 @@ namespace miniCSharp_Compiler
                     else
                     {
                         FinishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, !EnglishVersion ? "EOF en una cadena" : "EOF found in a string");
+                    }
+                }
+                if (tempNode.Token == 'C')
+                {
+                    if (tempNode.Description != string.Empty)
+                    {
+                        tempNode.Token = 'E';
+                        FinishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, tempNode.Description);
+                    }
+                    else
+                    {
+                        FinishLexemeNodeAndAddToLexemes(ref tempNode, fileLine.Length, string.Empty);
                     }
                 }
                 else
@@ -681,15 +709,17 @@ namespace miniCSharp_Compiler
                 var errorDescription = string.Empty;
                 if (tempNode.Token == 'M')
                 {
-                    errorDescription = !EnglishVersion ? "caracter no reconocido en comentario multilínea" : "unrecognized character in multiline comment";
+                    tempNode.Description = !EnglishVersion ? "caracter(es) no reconocido(s) en comentario multilínea, se omitieron" : "unrecognized character(s) in multiline comment, not added to value";
+                }
+                else if (tempNode.Token == 'C')
+                {
+                    tempNode.Description = !EnglishVersion ? "caracter(es) no reconocido(s) en comentario simple, se omitieron" : "unrecognized character(s) in single comment, not added to value";
                 }
                 else
                 {
-                    errorDescription = !EnglishVersion ? "caracter no reconocido en cadena" : "unrecognized character in string constant";
+                    tempNode.Description = !EnglishVersion ? "caracter(es) no reconocido(s) en cadena" : "unrecognized character(s) in string constant, not added to value";
                 }
 
-                tempNode.Token = 'E';
-                FinishLexemeNodeAndAddToLexemes(ref tempNode, column, errorDescription);
             }
         }
 
