@@ -6,7 +6,7 @@
 
 [English version](https://github.com/MarioOrellana58/MiniC--Compiler/blob/master/README-en.md)
 
-<a href="https://drive.google.com/file/d/1_QoMg-7Bq7fSuKf3kKp38MXlGy0VWKzO/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/zSNLWLg/3.png" /></a>
+<a href="https://drive.google.com/file/d/18B-DVnjRqm_pjGAUgKhFbL_qr_79WvY5/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/zSNLWLg/3.png" /></a>
 
 
 
