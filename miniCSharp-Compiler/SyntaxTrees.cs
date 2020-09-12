@@ -316,6 +316,285 @@ namespace miniCSharp_Compiler
             SyntaxTreesDic.Add("AA'", root19);
 
 
+
+            //-------------------------------------------------
+
+
+            var root20 = new SyntaxNode("BB");
+            var firstSon20 = new SyntaxNode("CC");
+            var firstS20F1 = new SyntaxNode("BB'");
+
+            root20.Sons.Add(firstSon20);
+            firstSon20.Sons.Add(firstS20F1);
+            SyntaxTreesDic.Add("BB", root20);
+
+
+            //-------------------------------------------------
+
+
+            var root21 = new SyntaxNode("BB'");
+            var firstSon21 = new SyntaxNode("!=");
+            var secondSon21 = new SyntaxNode("==");
+            var thirdSon21 = new SyntaxNode("Eps");
+            var firstS21F1 = new SyntaxNode("CC");
+            var firstS21F2 = new SyntaxNode("BB'");
+            var secondS21F1 = new SyntaxNode("CC");
+            var secondS21F2 = new SyntaxNode("BB'");
+
+            root21.Sons.Add(firstSon21);
+            root21.Sons.Add(secondSon21);
+            root21.Sons.Add(thirdSon21);
+            secondSon21.Sons.Add(firstS21F1);
+            firstS21F1.Sons.Add(firstS21F2);
+            thirdSon21.Sons.Add(secondS21F1);
+            secondS21F1.Sons.Add(secondS21F2);
+
+            SyntaxTreesDic.Add("BB'", root21);
+
+
+            //-------------------------------------------------
+
+
+            var root22 = new SyntaxNode("CC");
+            var firstSon22 = new SyntaxNode("DD");
+            var firstS22F1 = new SyntaxNode("CC'");
+
+            root22.Sons.Add(firstSon22);
+            firstSon22.Sons.Add(firstS22F1);
+
+            SyntaxTreesDic.Add("CC", root22);
+
+
+            //-------------------------------------------------
+
+
+            var root23 = new SyntaxNode("CC'");
+            var firstSon23 = new SyntaxNode(">=");
+            var secondSon23 = new SyntaxNode(">");
+            var thirdSon23 = new SyntaxNode("<=");
+            var fourthSon23 = new SyntaxNode("<");
+            var fifthSon23 = new SyntaxNode("Eps");
+            var firstS23F1 = new SyntaxNode("DD");
+            var firstS23F2 = new SyntaxNode("CC'");
+            var secondS23F1 = new SyntaxNode("DD");
+            var secondS23F2 = new SyntaxNode("CC'");
+            var thirdS23F1 = new SyntaxNode("DD");
+            var thirdS23F2 = new SyntaxNode("CC'");
+            var fourthS23F1 = new SyntaxNode("DD");
+            var fourthS23F2 = new SyntaxNode("CC'");
+
+
+            root23.Sons.Add(firstSon23);
+            root23.Sons.Add(secondSon23);
+            root23.Sons.Add(thirdSon23);
+            root23.Sons.Add(fourthSon23);
+            root23.Sons.Add(fifthSon23);
+
+            firstSon23.Sons.Add(firstS23F1);
+            firstS23F1.Sons.Add(firstS23F2);
+            secondSon23.Sons.Add(secondS23F1);
+            secondS23F1.Sons.Add(secondS23F2);
+            thirdSon23.Sons.Add(thirdS23F1);
+            thirdS23F1.Sons.Add(thirdS23F2);
+            fourthSon23.Sons.Add(fourthS23F1);
+            fourthS23F1.Sons.Add(fourthS23F2);
+
+            SyntaxTreesDic.Add("CC'", root23);
+
+
+            //-------------------------------------------------
+
+
+            var root24 = new SyntaxNode("DD");
+            var firstSon24 = new SyntaxNode("EE");
+            var firstS24F1 = new SyntaxNode("DD'");
+
+            root24.Sons.Add(firstSon24);
+            firstSon24.Sons.Add(firstS24F1);
+
+            SyntaxTreesDic.Add("DD", root24);
+
+
+            //-------------------------------------------------
+
+
+            var root25 = new SyntaxNode("DD'");
+            var firstSon25 = new SyntaxNode("+");
+            var secondSon25 = new SyntaxNode("-");
+            var firstS25F1 = new SyntaxNode("EE");
+            var firstS25F2 = new SyntaxNode("DD'");
+            var thirdSon25 = new SyntaxNode("Eps");
+            var secondS25F1 = new SyntaxNode("EE");
+            var secondS25F2 = new SyntaxNode("DD'");
+
+            root25.Sons.Add(firstSon25);
+            root25.Sons.Add(secondSon25);
+            root25.Sons.Add(thirdSon25);
+            firstSon25.Sons.Add(firstS25F1);
+            firstS25F1.Sons.Add(firstS25F2);
+            secondSon25.Sons.Add(secondS25F1);
+            secondS25F1.Sons.Add(secondS25F2);
+
+            SyntaxTreesDic.Add("DD'", root25);
+
+
+            //-------------------------------------------------
+
+
+            var root26 = new SyntaxNode("EE");
+            var firstSon26 = new SyntaxNode("FF");
+            var firstS26F1 = new SyntaxNode("EE'");
+
+            root26.Sons.Add(firstSon26);
+            firstSon26.Sons.Add(firstS26F1);
+            SyntaxTreesDic.Add("EE", root26);
+
+
+            //-------------------------------------------------
+
+            var root27 = new SyntaxNode("EE'");
+            var firstSon27 = new SyntaxNode("*");
+            var secondSon27 = new SyntaxNode("/");
+            var thirdSon27 = new SyntaxNode("%");
+            var fourthSon27 = new SyntaxNode("Eps");
+            var firstS27F1 = new SyntaxNode("FF");
+            var firstS27F2 = new SyntaxNode("EE'");
+            var secondS27F1 = new SyntaxNode("FF");
+            var secondS27F2 = new SyntaxNode("EE'");
+            var thirdS27F1 = new SyntaxNode("FF");
+            var thirdS27F2 = new SyntaxNode("EE'");
+
+
+            root27.Sons.Add(firstSon27);
+            root27.Sons.Add(secondSon27);
+            root27.Sons.Add(thirdSon27);
+            root27.Sons.Add(fourthSon27);
+
+            firstSon27.Sons.Add(firstS27F1);
+            firstS27F1.Sons.Add(firstS27F2);
+            secondSon27.Sons.Add(secondS27F1);
+            secondS27F1.Sons.Add(secondS27F2);
+            thirdSon27.Sons.Add(thirdS27F1);
+            thirdS27F1.Sons.Add(thirdS27F2);
+
+            SyntaxTreesDic.Add("EE'", root27);
+
+
+            //-------------------------------------------------
+
+
+            var root28 = new SyntaxNode("FF");
+            var firstSon28 = new SyntaxNode("!");
+            var secondSon28 = new SyntaxNode("-");
+            var firstS28F1 = new SyntaxNode("GG");
+            var secondS28F1 = new SyntaxNode("GG");
+            var thirdSon28 = new SyntaxNode("GG");
+
+            root28.Sons.Add(firstSon28);
+            root28.Sons.Add(secondSon28);
+            root28.Sons.Add(thirdSon28);
+            firstSon28.Sons.Add(firstS28F1);
+            secondSon28.Sons.Add(secondS28F1);
+
+            SyntaxTreesDic.Add("FF", root28);
+
+
+            //-------------------------------------------------
+
+
+            var root29 = new SyntaxNode("GG");
+            var firstSon29 = new SyntaxNode("HH");
+            var firstS29F1 = new SyntaxNode("GG'");
+
+            root29.Sons.Add(firstSon29);
+
+            firstSon29.Sons.Add(firstS29F1);
+
+            SyntaxTreesDic.Add("GG", root29);
+
+            //-------------------------------------------------
+
+            var root30 = new SyntaxNode("GG'");
+            var firstSon30 = new SyntaxNode(".");
+            var secondSon30 = new SyntaxNode("[");
+            var thirdSon30 = new SyntaxNode("Eps");
+
+            var firstS30F1 = new SyntaxNode("I");
+            var firstS30F2 = new SyntaxNode("GG'");
+
+            var secondS30F1 = new SyntaxNode("Expr");
+            var secondS30F2 = new SyntaxNode("]");
+            var secondS30F3 = new SyntaxNode("=");
+            var secondS30F4 = new SyntaxNode("Expr");
+            var secondS30F5 = new SyntaxNode("GG'");
+
+            root30.Sons.Add(firstSon30);
+            root30.Sons.Add(secondSon30);
+            root30.Sons.Add(thirdSon30);
+
+            firstSon30.Sons.Add(firstS30F1);
+            firstS30F1.Sons.Add(firstS30F2);
+
+            secondSon30.Sons.Add(secondS30F1);
+            secondS30F1.Sons.Add(secondS30F2);
+            secondS30F2.Sons.Add(secondS30F3);
+            secondS30F3.Sons.Add(secondS30F4);
+            secondS30F4.Sons.Add(secondS30F5);
+
+            SyntaxTreesDic.Add("GG'", root30);
+            //-------------------------------------------------
+
+            var root31 = new SyntaxNode("HH");
+            var firstSon31 = new SyntaxNode("(");
+            var secondSon31 = new SyntaxNode("Constant");
+            var thirdSon31 = new SyntaxNode("New");
+            var fourthSon31 = new SyntaxNode("this");
+            var fifthSon31 = new SyntaxNode("I");
+
+            var firstS31F1 = new SyntaxNode("Expr");
+            var firstS31F2 = new SyntaxNode(")");
+
+            var thirdS31F1 = new SyntaxNode("(");
+            var thirdS31F2 = new SyntaxNode("I");
+            var thirdS31F3 = new SyntaxNode(")");
+
+            root31.Sons.Add(firstSon31);
+            root31.Sons.Add(secondSon31);
+            root31.Sons.Add(thirdSon31);
+            root31.Sons.Add(fourthSon31);
+            root31.Sons.Add(fifthSon31);
+
+            firstSon31.Sons.Add(firstS31F1);
+            firstS31F1.Sons.Add(firstS31F2);
+
+            thirdSon31.Sons.Add(thirdS31F1);
+            thirdS31F1.Sons.Add(thirdS31F2);
+            thirdS31F2.Sons.Add(thirdS31F3);
+
+            SyntaxTreesDic.Add("HH", root31);
+
+            //-------------------------------------------------
+
+
+            //cambiar valores hojas para hacer match con token
+            var root32 = new SyntaxNode("Constant");
+            var firstSon32 = new SyntaxNode("N");       //N-- > int
+            var secondSon32 = new SyntaxNode("D");      //D --> double
+            var thirdSon32 = new SyntaxNode("B");       //B --> bool
+            var fourthSon32 = new SyntaxNode("S");      //S --> String
+            var fifthSon32 = new SyntaxNode("null");
+            var sixthSon32 = new SyntaxNode("H");       //H --> int hexadecimal
+            var seventhSon32 = new SyntaxNode("X");       //H --> double exponencial
+
+            root32.Sons.Add(firstSon32);
+            root32.Sons.Add(secondSon32);
+            root32.Sons.Add(thirdSon32);
+            root32.Sons.Add(fourthSon32);
+            root32.Sons.Add(fifthSon32);
+            root32.Sons.Add(sixthSon32);
+            root32.Sons.Add(seventhSon32);
+
+            SyntaxTreesDic.Add("Constant", root32);
         }
     }
 }
