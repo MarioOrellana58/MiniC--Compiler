@@ -33,7 +33,13 @@ namespace miniCSharp_Compiler
 
             analyze.ReadFileAndAnalyzeDocument(path);
 
-            analyze.PrintResultAndSaveToFile(resultFilePath);
+            var areLexemesCorrect = analyze.PrintResultAndSaveToFile(resultFilePath);
+
+            if (areLexemesCorrect)
+            {
+                var analizeSyntax = new SyntaxAnalyzer(analyze.Lexemes);
+                analizeSyntax.ReadLexemes();
+            }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(!englishVersion ? "Tu archivo de salida se encuentra en " : "You can find your output file in ");

@@ -12,19 +12,54 @@ namespace miniCSharp_Compiler
         public string expectedValue { get; set; }
 
     }
-    class SyntaxAnalyzer
+    public class SyntaxAnalyzer
     {
         Dictionary<string, SyntaxNode> SyntaxTreesDic = new Dictionary<string, SyntaxNode>();
         List<LexemeNode> TokensList = new List<LexemeNode>();
 
         List<syntaxErrors> syntaxErrorsList = new List<syntaxErrors>();
         string expected = string.Empty;
-        bool AnalyzeTokens(ref int tokensIndex, SyntaxNode actualRoot, ref string expectedToken)
+        public SyntaxAnalyzer(List<LexemeNode> tokensList)
         {
-            if (TokensList[tokensIndex].Value == "(" && actualRoot.Value == "(")
+            var ProductionTrees = new SyntaxTrees();
+            this.SyntaxTreesDic = ProductionTrees.SyntaxTreesDic;
+            this.TokensList = tokensList;
+        }
+        public void ReadLexemes()
+        {
+            var errors = new List<string>();
+            for (int i = 0; i < TokensList.Count; i++)
             {
+                syntaxErrorsList = new List<syntaxErrors>();
+                expected = string.Empty;
+                if (!AnalyzeTokens(ref i, SyntaxTreesDic["Decl"], ref expected))
+                {
+                    i = syntaxErrorsList.Max(x => x.tokenIndex);
+                    expected = "Error en       " + TokensList[i - 1].Value + "        se esperaban cualquiera de estas opciones:       ";
+                    foreach (var error in syntaxErrorsList)
+                    {
+                        if (error.tokenIndex == i)
+                        {
+                            expected += error.expectedValue + "       ";
+                        }
+                    }
+                    errors.Add(expected);
+                }
+                else
+                {
+                    i--;
+                }
 
             }
+            foreach (var item in errors)
+            {
+                Console.WriteLine(item);
+            }
+        }
+
+        bool AnalyzeTokens(ref int tokensIndex, SyntaxNode actualRoot, ref string expectedToken)
+        {
+
             if (actualRoot.Sons.Count != 0)
             {
                 var sonsCounter = 0;
@@ -42,7 +77,6 @@ namespace miniCSharp_Compiler
                                 {
                                     if (AnalyzeTokens(ref tokensIndex, actualRoot.Sons[sonsCounter].Sons[0], ref expectedToken))
                                     {
-                                        //syntaxErrorsList = new List<syntaxErrors>();
                                         matchFound = true;
                                     }
                                     else
@@ -54,7 +88,6 @@ namespace miniCSharp_Compiler
                                 }
                                 else
                                 {
-                                    //syntaxErrorsList = new List<syntaxErrors>();
                                     matchFound = true;
                                 }
                             }
@@ -67,7 +100,6 @@ namespace miniCSharp_Compiler
                         {
                             if (AnalyzeTokens(ref tokensIndex, actualRoot.Sons[sonsCounter], ref expectedToken))
                             {
-                                //syntaxErrorsList = new List<syntaxErrors>();
                                 matchFound = true;
                             }
                             else
@@ -85,15 +117,36 @@ namespace miniCSharp_Compiler
                         {
                             if (AnalyzeTokens(ref tokensIndex, SyntaxTreesDic[actualRoot.Sons[0].Value], ref expectedToken))
                             {
-                                var a = actualRoot.Sons[0];
-                                matchFound = true;
-                                //syntaxErrorsList = new List<syntaxErrors>();
+                                if (actualRoot.Sons[0].Sons.Count != 0)
+                                {
+                                    var sons = 0;
+                                    var match = true;
+                                    while (sons < actualRoot.Sons[0].Sons.Count && match)
+                                    {
+                                        if (!AnalyzeTokens(ref tokensIndex, actualRoot.Sons[0].Sons[sons], ref expectedToken))
+                                        {
+                                            match = false;
+                                        }
+                                        else
+                                        {
+                                            sons++;
+                                        }
+                                    }
+                                    if (!match)
+                                    {
+                                        matchFound = false;
+                                    }
+                                }
+                                else
+                                {
+                                    matchFound = true;
+                                }
                                 matchFound = true;
                             }
                         }
                         else if (AnalyzeTokens(ref tokensIndex, actualRoot.Sons[0], ref expectedToken))
                         {
-                            //syntaxErrorsList = new List<syntaxErrors>();
+
                             matchFound = true;
                         }
                     }
@@ -135,5 +188,16 @@ namespace miniCSharp_Compiler
             }
         }
 
+        bool isMatch(string rootValue, LexemeNode tokenToMatch)
+        {
+            if (rootValue == tokenToMatch.Value || rootValue == tokenToMatch.Token.ToString())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
