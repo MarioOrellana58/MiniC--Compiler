@@ -31,6 +31,7 @@ namespace miniCSharp_Compiler
             OperatorsAndPuncChars.Add("}");
             OperatorsAndPuncChars.Add(",");
             OperatorsAndPuncChars.Add(".");
+            OperatorsAndPuncChars.Add(":");
             OperatorsAndPuncChars.Add(";");
             OperatorsAndPuncChars.Add("!");
             OperatorsAndPuncChars.Add("<");
@@ -46,6 +47,7 @@ namespace miniCSharp_Compiler
             OperatorsAndPuncChars.Add("[]");
             OperatorsAndPuncChars.Add("()");
 
+            ReservedWords.Add("Print");
             ReservedWords.Add("void");
             ReservedWords.Add("int");
             ReservedWords.Add("double");
