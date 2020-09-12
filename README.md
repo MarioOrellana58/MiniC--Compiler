@@ -3,7 +3,7 @@
 > José Eduardo Tejeda León             1097218
 > Mario Estuardo Gómez Orellana     1020618
 
-
+DOCUMENTACION https://drive.google.com/file/d/1nU6r4lkJ7zXAzorbklY7_t7MGYK7ZtzE/view?usp=sharing
 [English version](https://github.com/MarioOrellana58/MiniC--Compiler/blob/master/README-en.md)
 
 <a href="https://drive.google.com/file/d/18B-DVnjRqm_pjGAUgKhFbL_qr_79WvY5/view?usp=sharing" download="Descargar ejecutable"><img src="https://i.ibb.co/zSNLWLg/3.png" /></a>
