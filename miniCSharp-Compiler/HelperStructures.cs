@@ -39333,6 +39333,56 @@ namespace miniCSharp_Compiler
             HeadersDict.Add("+", 29);
             HeadersDict.Add("*", 30);
             HeadersDict.Add("%", 31);
+            HeadersDict.Add("-", 32);
+            HeadersDict.Add("&lt;", 33);
+            HeadersDict.Add("&lt;=", 34);
+            HeadersDict.Add("==", 35);
+            HeadersDict.Add("&amp;&amp;", 36);
+            HeadersDict.Add("!", 37);
+            HeadersDict.Add("New", 38);
+            HeadersDict.Add("intConstant", 39);
+            HeadersDict.Add("doubleConstant", 40);
+            HeadersDict.Add("boolConstant", 41);
+            HeadersDict.Add("stringConstant", 42);
+            HeadersDict.Add("null", 43);
+            HeadersDict.Add("$", 44);
+            HeadersDict.Add("S", 45);
+            HeadersDict.Add("Program", 46);
+            HeadersDict.Add("Program’", 47);
+            HeadersDict.Add("Decl", 48);
+            HeadersDict.Add("VariableDecl", 49);
+            HeadersDict.Add("Variable", 50);
+            HeadersDict.Add("ConstDecl", 51);
+            HeadersDict.Add("ConstType", 52);
+            HeadersDict.Add("Type", 53);
+            HeadersDict.Add("FunctionDecl", 54);
+            HeadersDict.Add("Formals", 55);
+            HeadersDict.Add("ClassDecl", 56);
+            HeadersDict.Add("ClassDecl1", 57);
+            HeadersDict.Add("ClassDecl2", 58);
+            HeadersDict.Add("ClassDecl3", 59);
+            HeadersDict.Add("Field", 60);
+            HeadersDict.Add("InterfaceDecl", 61);
+            HeadersDict.Add("InterfaceDecl’", 62);
+            HeadersDict.Add("Prototype", 63);
+            HeadersDict.Add("StmtBlock", 64);
+            HeadersDict.Add("StmtBlock1", 65);
+            HeadersDict.Add("StmtBlock2", 66);
+            HeadersDict.Add("StmtBlock3", 67);
+            HeadersDict.Add("Stmt", 68);
+            HeadersDict.Add("Stmt’", 69);
+            HeadersDict.Add("IfStmt", 70);
+            HeadersDict.Add("IfStmt’", 71);
+            HeadersDict.Add("WhileStmt", 72);
+            HeadersDict.Add("ForStmt", 73);
+            HeadersDict.Add("ReturnStmt", 74);
+            HeadersDict.Add("BreakStmt", 75);
+            HeadersDict.Add("PrintStmt", 76);
+            HeadersDict.Add("PrintStmt’", 77);
+            HeadersDict.Add("Expr", 78);
+            HeadersDict.Add("LValue", 79);
+            HeadersDict.Add("Constant", 80);
+
         }
     }
 }
