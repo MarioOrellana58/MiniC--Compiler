@@ -9,7 +9,9 @@ namespace miniCSharp_Compiler
     class HelperStructures
     {
         string[,] AnalysisTable { get; set; }
-        Dictionary<string, int> HeadersDict { get; set; }
+        Dictionary<string, int> ActionsDict { get; set; }
+        Dictionary<string, int> GotoDict { get; set; }
+
 
         public HelperStructures()
         {
@@ -59,7 +61,7 @@ namespace miniCSharp_Compiler
             AnalysisTable[0, 42] = @"S";//stringConstant
             AnalysisTable[0, 43] = @"null";
             AnalysisTable[0, 44] = @"$";
-            AnalysisTable[0, 45] = @"S";
+            AnalysisTable[0, 45] = @"Start";
             AnalysisTable[0, 46] = @"Program";
             AnalysisTable[0, 47] = @"Program’";
             AnalysisTable[0, 48] = @"Decl";
@@ -39301,87 +39303,87 @@ namespace miniCSharp_Compiler
             AnalysisTable[484, 80] = string.Empty;
 
 
-            HeadersDict = new Dictionary<string, int>();
-            HeadersDict.Add(";", 1);
-            HeadersDict.Add("I", 2);//ident
-            HeadersDict.Add("const", 3);
-            HeadersDict.Add("int", 4);
-            HeadersDict.Add("double", 5);
-            HeadersDict.Add("bool", 6);
-            HeadersDict.Add("string", 7);
-            HeadersDict.Add("[]", 8);
-            HeadersDict.Add("(", 9);
-            HeadersDict.Add(")", 10);
-            HeadersDict.Add("void", 11);
-            HeadersDict.Add(",", 12);
-            HeadersDict.Add("class", 13);
-            HeadersDict.Add("{", 14);
-            HeadersDict.Add("}", 15);
-            HeadersDict.Add(":", 16);
-            HeadersDict.Add("interface", 17);
-            HeadersDict.Add("if", 18);
-            HeadersDict.Add("else", 19);
-            HeadersDict.Add("while", 20);
-            HeadersDict.Add("for", 21);
-            HeadersDict.Add("return", 22);
-            HeadersDict.Add("break", 23);
-            HeadersDict.Add("Console", 24);
-            HeadersDict.Add(".", 25);
-            HeadersDict.Add("Writeline", 26);
-            HeadersDict.Add("=", 27);
-            HeadersDict.Add("this", 28);
-            HeadersDict.Add("+", 29);
-            HeadersDict.Add("*", 30);
-            HeadersDict.Add("%", 31);
-            HeadersDict.Add("-", 32);
-            HeadersDict.Add("&lt;", 33);
-            HeadersDict.Add("&lt;=", 34);
-            HeadersDict.Add("==", 35);
-            HeadersDict.Add("&amp;&amp;", 36);
-            HeadersDict.Add("!", 37);
-            HeadersDict.Add("New", 38);
-            HeadersDict.Add("N", 39);//intConstant
-            HeadersDict.Add("D", 40);//doubleConstant
-            HeadersDict.Add("B", 41);//boolConstant
-            HeadersDict.Add("S", 42);//stringConstant
-            HeadersDict.Add("null", 43);
-            HeadersDict.Add("$", 44);
-            HeadersDict.Add("S", 45);
-            HeadersDict.Add("Program", 46);
-            HeadersDict.Add("Program’", 47);
-            HeadersDict.Add("Decl", 48);
-            HeadersDict.Add("VariableDecl", 49);
-            HeadersDict.Add("Variable", 50);
-            HeadersDict.Add("ConstDecl", 51);
-            HeadersDict.Add("ConstType", 52);
-            HeadersDict.Add("Type", 53);
-            HeadersDict.Add("FunctionDecl", 54);
-            HeadersDict.Add("Formals", 55);
-            HeadersDict.Add("ClassDecl", 56);
-            HeadersDict.Add("ClassDecl1", 57);
-            HeadersDict.Add("ClassDecl2", 58);
-            HeadersDict.Add("ClassDecl3", 59);
-            HeadersDict.Add("Field", 60);
-            HeadersDict.Add("InterfaceDecl", 61);
-            HeadersDict.Add("InterfaceDecl’", 62);
-            HeadersDict.Add("Prototype", 63);
-            HeadersDict.Add("StmtBlock", 64);
-            HeadersDict.Add("StmtBlock1", 65);
-            HeadersDict.Add("StmtBlock2", 66);
-            HeadersDict.Add("StmtBlock3", 67);
-            HeadersDict.Add("Stmt", 68);
-            HeadersDict.Add("Stmt’", 69);
-            HeadersDict.Add("IfStmt", 70);
-            HeadersDict.Add("IfStmt’", 71);
-            HeadersDict.Add("WhileStmt", 72);
-            HeadersDict.Add("ForStmt", 73);
-            HeadersDict.Add("ReturnStmt", 74);
-            HeadersDict.Add("BreakStmt", 75);
-            HeadersDict.Add("PrintStmt", 76);
-            HeadersDict.Add("PrintStmt’", 77);
-            HeadersDict.Add("Expr", 78);
-            HeadersDict.Add("LValue", 79);
-            HeadersDict.Add("Constant", 80);
+            ActionsDict = new Dictionary<string, int>();
+            ActionsDict.Add(";", 1);
+            ActionsDict.Add("I", 2);//ident
+            ActionsDict.Add("const", 3);
+            ActionsDict.Add("int", 4);
+            ActionsDict.Add("double", 5);
+            ActionsDict.Add("bool", 6);
+            ActionsDict.Add("string", 7);
+            ActionsDict.Add("[]", 8);
+            ActionsDict.Add("(", 9);
+            ActionsDict.Add(")", 10);
+            ActionsDict.Add("void", 11);
+            ActionsDict.Add(",", 12);
+            ActionsDict.Add("class", 13);
+            ActionsDict.Add("{", 14);
+            ActionsDict.Add("}", 15);
+            ActionsDict.Add(":", 16);
+            ActionsDict.Add("interface", 17);
+            ActionsDict.Add("if", 18);
+            ActionsDict.Add("else", 19);
+            ActionsDict.Add("while", 20);
+            ActionsDict.Add("for", 21);
+            ActionsDict.Add("return", 22);
+            ActionsDict.Add("break", 23);
+            ActionsDict.Add("Console", 24);
+            ActionsDict.Add(".", 25);
+            ActionsDict.Add("Writeline", 26);
+            ActionsDict.Add("=", 27);
+            ActionsDict.Add("this", 28);
+            ActionsDict.Add("+", 29);
+            ActionsDict.Add("*", 30);
+            ActionsDict.Add("%", 31);
+            ActionsDict.Add("-", 32);
+            ActionsDict.Add("&lt;", 33);
+            ActionsDict.Add("&lt;=", 34);
+            ActionsDict.Add("==", 35);
+            ActionsDict.Add("&amp;&amp;", 36);
+            ActionsDict.Add("!", 37);
+            ActionsDict.Add("New", 38);
+            ActionsDict.Add("N", 39);//intConstant
+            ActionsDict.Add("D", 40);//doubleConstant
+            ActionsDict.Add("B", 41);//boolConstant
+            ActionsDict.Add("S", 42);//stringConstant
+            ActionsDict.Add("null", 43);
+            ActionsDict.Add("$", 44);
+            GotoDict.Add("Start", 45);
+            GotoDict.Add("Program", 46);
+            GotoDict.Add("Program’", 47);
+            GotoDict.Add("Decl", 48);
+            GotoDict.Add("VariableDecl", 49);
+            GotoDict.Add("Variable", 50);
+            GotoDict.Add("ConstDecl", 51);
+            GotoDict.Add("ConstType", 52);
+            GotoDict.Add("Type", 53);
+            GotoDict.Add("FunctionDecl", 54);
+            GotoDict.Add("Formals", 55);
+            GotoDict.Add("ClassDecl", 56);
+            GotoDict.Add("ClassDecl1", 57);
+            GotoDict.Add("ClassDecl2", 58);
+            GotoDict.Add("ClassDecl3", 59);
+            GotoDict.Add("Field", 60);
+            GotoDict.Add("InterfaceDecl", 61);
+            GotoDict.Add("InterfaceDecl’", 62);
+            GotoDict.Add("Prototype", 63);
+            GotoDict.Add("StmtBlock", 64);
+            GotoDict.Add("StmtBlock1", 65);
+            GotoDict.Add("StmtBlock2", 66);
+            GotoDict.Add("StmtBlock3", 67);
+            GotoDict.Add("Stmt", 68);
+            GotoDict.Add("Stmt’", 69);
+            GotoDict.Add("IfStmt", 70);
+            GotoDict.Add("IfStmt’", 71);
+            GotoDict.Add("WhileStmt", 72);
+            GotoDict.Add("ForStmt", 73);
+            GotoDict.Add("ReturnStmt", 74);
+            GotoDict.Add("BreakStmt", 75);
+            GotoDict.Add("PrintStmt", 76);
+            GotoDict.Add("PrintStmt’", 77);
+            GotoDict.Add("Expr", 78);
+            GotoDict.Add("LValue", 79);
+            GotoDict.Add("Constant", 80);
 
         }
     }
