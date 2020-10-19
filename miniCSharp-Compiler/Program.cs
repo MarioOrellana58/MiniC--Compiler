@@ -8,6 +8,7 @@ namespace miniCSharp_Compiler
     {
         static void Main(string[] args)
         {
+            var tempobject = new HelperStructures();
             var fileExists = false;
             var path = string.Empty;
             var englishVersion = false;
