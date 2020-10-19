@@ -39299,6 +39299,40 @@ namespace miniCSharp_Compiler
             AnalysisTable[484, 78] = string.Empty;
             AnalysisTable[484, 79] = string.Empty;
             AnalysisTable[484, 80] = string.Empty;
+
+
+            HeadersDict = new Dictionary<string, int>();
+            HeadersDict.Add(";", 1);
+            HeadersDict.Add("ident", 2);
+            HeadersDict.Add("const", 3);
+            HeadersDict.Add("int", 4);
+            HeadersDict.Add("double", 5);
+            HeadersDict.Add("bool", 6);
+            HeadersDict.Add("string", 7);
+            HeadersDict.Add("[]", 8);
+            HeadersDict.Add("(", 9);
+            HeadersDict.Add(")", 10);
+            HeadersDict.Add("void", 11);
+            HeadersDict.Add(",", 12);
+            HeadersDict.Add("class", 13);
+            HeadersDict.Add("{", 14);
+            HeadersDict.Add("}", 15);
+            HeadersDict.Add(":", 16);
+            HeadersDict.Add("interface", 17);
+            HeadersDict.Add("if", 18);
+            HeadersDict.Add("else", 19);
+            HeadersDict.Add("while", 20);
+            HeadersDict.Add("for", 21);
+            HeadersDict.Add("return", 22);
+            HeadersDict.Add("break", 23);
+            HeadersDict.Add("Console", 24);
+            HeadersDict.Add(".", 25);
+            HeadersDict.Add("Writeline", 26);
+            HeadersDict.Add("=", 27);
+            HeadersDict.Add("this", 28);
+            HeadersDict.Add("+", 29);
+            HeadersDict.Add("*", 30);
+            HeadersDict.Add("%", 31);
         }
     }
 }
