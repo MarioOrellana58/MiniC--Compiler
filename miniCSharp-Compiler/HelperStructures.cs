@@ -16,7 +16,7 @@ namespace miniCSharp_Compiler
             AnalysisTable = new string[485, 81];
             AnalysisTable[0, 0] = @"";
             AnalysisTable[0, 1] = @";";
-            AnalysisTable[0, 2] = @"ident";
+            AnalysisTable[0, 2] = @"I";//ident
             AnalysisTable[0, 3] = @"const";
             AnalysisTable[0, 4] = @"int";
             AnalysisTable[0, 5] = @"double";
@@ -53,10 +53,10 @@ namespace miniCSharp_Compiler
             AnalysisTable[0, 36] = @"&amp;&amp;";
             AnalysisTable[0, 37] = @"!";
             AnalysisTable[0, 38] = @"New";
-            AnalysisTable[0, 39] = @"intConstant";
-            AnalysisTable[0, 40] = @"doubleConstant";
-            AnalysisTable[0, 41] = @"boolConstant";
-            AnalysisTable[0, 42] = @"stringConstant";
+            AnalysisTable[0, 39] = @"N";//intConstant
+            AnalysisTable[0, 40] = @"D";//doubleConstant
+            AnalysisTable[0, 41] = @"B";//boolConstant
+            AnalysisTable[0, 42] = @"S";//stringConstant
             AnalysisTable[0, 43] = @"null";
             AnalysisTable[0, 44] = @"$";
             AnalysisTable[0, 45] = @"S";
@@ -39303,7 +39303,7 @@ namespace miniCSharp_Compiler
 
             HeadersDict = new Dictionary<string, int>();
             HeadersDict.Add(";", 1);
-            HeadersDict.Add("ident", 2);
+            HeadersDict.Add("I", 2);//ident
             HeadersDict.Add("const", 3);
             HeadersDict.Add("int", 4);
             HeadersDict.Add("double", 5);
@@ -39340,10 +39340,10 @@ namespace miniCSharp_Compiler
             HeadersDict.Add("&amp;&amp;", 36);
             HeadersDict.Add("!", 37);
             HeadersDict.Add("New", 38);
-            HeadersDict.Add("intConstant", 39);
-            HeadersDict.Add("doubleConstant", 40);
-            HeadersDict.Add("boolConstant", 41);
-            HeadersDict.Add("stringConstant", 42);
+            HeadersDict.Add("N", 39);//intConstant
+            HeadersDict.Add("D", 40);//doubleConstant
+            HeadersDict.Add("B", 41);//boolConstant
+            HeadersDict.Add("S", 42);//stringConstant
             HeadersDict.Add("null", 43);
             HeadersDict.Add("$", 44);
             HeadersDict.Add("S", 45);
