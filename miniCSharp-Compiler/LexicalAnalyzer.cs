@@ -288,7 +288,6 @@ namespace miniCSharp_Compiler
                         switch (tempNode.Token)
                         {
                             case 'I':
-                                //validar si es identificador, bool o palabra reservada
                                 if (char.IsLetterOrDigit(fileLine[column]) || fileLine[column] == '_')
                                 {
                                     if (tempNode.Value.Length < 31)

@@ -11,7 +11,7 @@ namespace miniCSharp_Compiler
         string[,] AnalysisTable { get; set; }
         Dictionary<string, int> ActionsDict { get; set; }
         Dictionary<string, int> GotoDict { get; set; }
-
+        public List<ProductionNode> Productions { get; set; }
 
         public HelperStructures()
         {
@@ -39384,7 +39384,134 @@ namespace miniCSharp_Compiler
             GotoDict.Add("Expr", 78);
             GotoDict.Add("LValue", 79);
             GotoDict.Add("Constant", 80);
+            
 
+            Productions.Add(new ProductionNode { NonTerminalName = "Start", SymbolsProducedQty = 1 });//1
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Program", SymbolsProducedQty = 2 });//2
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Program’", SymbolsProducedQty = 2 });//3
+            Productions.Add(new ProductionNode { NonTerminalName = "Program’", SymbolsProducedQty = 0 });//4
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//5
+            Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//6
+            Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//7
+            Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//8
+            Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//9
+
+            Productions.Add(new ProductionNode { NonTerminalName = "VariableDecl", SymbolsProducedQty = 2 });//10
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Variable", SymbolsProducedQty = 2 });//11
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ConstDecl", SymbolsProducedQty = 4 });//12
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ConstType", SymbolsProducedQty = 1 });//13
+            Productions.Add(new ProductionNode { NonTerminalName = "ConstType", SymbolsProducedQty = 1 });//14
+            Productions.Add(new ProductionNode { NonTerminalName = "ConstType", SymbolsProducedQty = 1 });//15
+            Productions.Add(new ProductionNode { NonTerminalName = "ConstType", SymbolsProducedQty = 1 });//16
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 1 });//17
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 1 });//18
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 1 });//19
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 1 });//20
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 1 });//21
+            Productions.Add(new ProductionNode { NonTerminalName = "Type", SymbolsProducedQty = 2 });//22
+
+            Productions.Add(new ProductionNode { NonTerminalName = "FunctionDecl", SymbolsProducedQty = 6 });//23
+            Productions.Add(new ProductionNode { NonTerminalName = "FunctionDecl", SymbolsProducedQty = 6 });//24
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Formals", SymbolsProducedQty = 3 });//25
+            Productions.Add(new ProductionNode { NonTerminalName = "Formals", SymbolsProducedQty = 1 });//26
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl", SymbolsProducedQty = 7 });//27  
+            
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl1", SymbolsProducedQty = 2 });//28
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl1", SymbolsProducedQty = 0 });//29
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl2", SymbolsProducedQty = 3 });//30
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl2", SymbolsProducedQty = 0 });//31  
+            
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl3", SymbolsProducedQty = 2 });//32
+            Productions.Add(new ProductionNode { NonTerminalName = "ClassDecl3", SymbolsProducedQty = 0 });//33
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Field", SymbolsProducedQty = 1 });//34
+            Productions.Add(new ProductionNode { NonTerminalName = "Field", SymbolsProducedQty = 1 });//35
+            Productions.Add(new ProductionNode { NonTerminalName = "Field", SymbolsProducedQty = 1 });//36
+
+            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl", SymbolsProducedQty = 5 });//37
+
+            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl’", SymbolsProducedQty = 2 });//38
+            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl’", SymbolsProducedQty = 0 });//39
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Prototype", SymbolsProducedQty = 6 });//40
+            Productions.Add(new ProductionNode { NonTerminalName = "Prototype", SymbolsProducedQty = 6 });//41
+
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock", SymbolsProducedQty = 5 });//42
+
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock1", SymbolsProducedQty = 2 });//43
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock1", SymbolsProducedQty = 0 });//44
+
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock2", SymbolsProducedQty = 2 });//45
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock2", SymbolsProducedQty = 0 });//46
+
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock3", SymbolsProducedQty = 2 });//47
+            Productions.Add(new ProductionNode { NonTerminalName = "StmtBlock3", SymbolsProducedQty = 0 });//48
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 2 });//49
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//50
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//51
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//52
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//53
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//54
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//55
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//56
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt’", SymbolsProducedQty = 1 });//57
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt’", SymbolsProducedQty = 0 });//58
+
+            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt", SymbolsProducedQty = 6 });//59
+
+            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt’", SymbolsProducedQty = 2 });//60
+            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt’", SymbolsProducedQty = 0 });//61
+
+            Productions.Add(new ProductionNode { NonTerminalName = "WhileStmt", SymbolsProducedQty = 5 });//62
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ForStmt", SymbolsProducedQty = 9 });//63
+
+            Productions.Add(new ProductionNode { NonTerminalName = "ReturnStmt", SymbolsProducedQty = 3 });//64
+
+            Productions.Add(new ProductionNode { NonTerminalName = "BreakStmt", SymbolsProducedQty = 2 });//65
+
+            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt", SymbolsProducedQty = 8 });//66
+
+            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt’", SymbolsProducedQty = 3 });//67
+            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt’", SymbolsProducedQty = 0 });//68
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//69
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 1 });//70
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 1 });//71
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 1 });//72
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//73
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//74
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//75
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//76
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 2 });//77
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//78
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//79
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//80
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//81
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 2 });//82
+            Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 4 });//83
+
+            Productions.Add(new ProductionNode { NonTerminalName = "LValue", SymbolsProducedQty = 1 });//84
+            Productions.Add(new ProductionNode { NonTerminalName = "LValue", SymbolsProducedQty = 3 });//85
+
+            Productions.Add(new ProductionNode { NonTerminalName = "Constant", SymbolsProducedQty = 1 });//86
+            Productions.Add(new ProductionNode { NonTerminalName = "Constant", SymbolsProducedQty = 1 });//87
+            Productions.Add(new ProductionNode { NonTerminalName = "Constant", SymbolsProducedQty = 1 });//88
+            Productions.Add(new ProductionNode { NonTerminalName = "Constant", SymbolsProducedQty = 1 });//89
+            Productions.Add(new ProductionNode { NonTerminalName = "Constant", SymbolsProducedQty = 1 });//90
+            
         }
     }
 }
