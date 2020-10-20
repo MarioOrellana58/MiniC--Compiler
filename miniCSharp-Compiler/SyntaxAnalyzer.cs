@@ -14,8 +14,8 @@ namespace miniCSharp_Compiler
         HelperStructures Helper { get; set; }
         Stack<ConflictNode> ConflictsStack { get; set; }
         SyntaxAnalyzer()
-        {            
-            StatusStack = new Stack<int>();            
+        {
+            StatusStack = new Stack<int>();
             ConsumedSymbols = new Stack<string>();
             Helper = new HelperStructures();
         }
@@ -42,7 +42,7 @@ namespace miniCSharp_Compiler
             }
 
             if (headerFound)
-            {                
+            {
                 column++;
                 var analysisTableIns = getAnalysisTableInstruction(column);
                 if (analysisTableIns.Contains('/'))
@@ -61,16 +61,23 @@ namespace miniCSharp_Compiler
                     ConflictsStack.Push(conflicNode);
 
                     analysisTableIns = conflicNode.Instructions[0];
-                    
+
                 }
 
                 if (analysisTableIns[0] == 's')
                 {
                     shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
+
                 }
                 else if (analysisTableIns[0] == 'r')
                 {
-                    //reduction
+
+                    reduceBy(analysisTableIns);
+                    headerFound = Helper.GotoDict.TryGetValue(ConsumedSymbols.Peek(), out column);
+                    if (headerFound)
+                    {
+                        gotoStatus(column);
+                    }
                 }
                 else
                 {
@@ -89,13 +96,13 @@ namespace miniCSharp_Compiler
             {
                 //error
             }
-                
-            
+
+
         }
 
         string getAnalysisTableInstruction(int column)
         {
-            return Helper.AnalysisTable[StatusStack.Peek() + 1 , column];//to sync with table row index
+            return Helper.AnalysisTable[StatusStack.Peek() + 1, column];//to sync with table row index
         }
 
         void shiftTo(string actualInstruction, string consumedSymbol)
@@ -103,7 +110,46 @@ namespace miniCSharp_Compiler
             var nextStatus = Convert.ToInt32(actualInstruction.Substring(1, actualInstruction.Length - 2));
             StatusStack.Push(nextStatus);
             ConsumedSymbols.Push(consumedSymbol);
+        }
 
+        void reduceBy(string actualInstruction)
+        {
+            var reductionProdId = Convert.ToInt32(actualInstruction.Substring(1, actualInstruction.Length - 2));
+
+            var production = Helper.Productions[reductionProdId - 1]; //REVIEW THIS -1
+
+            popStacksAndReplaceStatus(production.SymbolsProducedQty, production.NonTerminalName);
+        }
+
+        void gotoStatus(int nextStatus)
+        {
+            StatusStack.Push(nextStatus);
+        }
+
+        void popStacksAndReplaceStatus(int elementsQtyToPop, string productionName)
+        {
+            for (int i = 0; i < elementsQtyToPop; i++)
+            {
+                if (StatusStack.Count > 0)
+                {
+                    StatusStack.Pop();
+                }
+                else
+                {
+                    //error
+                }
+
+                if (ConsumedSymbols.Count > 0)
+                {
+                    ConsumedSymbols.Pop();
+                }
+                else
+                {
+                    //error
+                }
+            }
+
+            ConsumedSymbols.Push(productionName);
         }
     }
 }
