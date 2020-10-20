@@ -8,9 +8,9 @@ namespace miniCSharp_Compiler
 {
     class HelperStructures
     {
-        string[,] AnalysisTable { get; set; }
-        Dictionary<string, int> ActionsDict { get; set; }
-        Dictionary<string, int> GotoDict { get; set; }
+        public string[,] AnalysisTable { get; set; }
+        public Dictionary<string, int> ActionsDict { get; set; }
+        public Dictionary<string, int> GotoDict { get; set; }
         public List<ProductionNode> Productions { get; set; }
 
         public HelperStructures()

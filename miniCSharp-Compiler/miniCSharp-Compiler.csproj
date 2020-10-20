@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConflictNode.cs" />
     <Compile Include="HelperStructures.cs" />
     <Compile Include="LexemeNode.cs" />
     <Compile Include="LexicalAnalyzer.cs" />
