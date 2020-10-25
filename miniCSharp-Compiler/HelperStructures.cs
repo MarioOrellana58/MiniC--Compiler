@@ -49,10 +49,10 @@ namespace miniCSharp_Compiler
             AnalysisTable[0, 30] = @"*";
             AnalysisTable[0, 31] = @"%";
             AnalysisTable[0, 32] = @"-";
-            AnalysisTable[0, 33] = @"&lt;";
-            AnalysisTable[0, 34] = @"&lt;=";
+            AnalysisTable[0, 33] = @"<";
+            AnalysisTable[0, 34] = @"<=";
             AnalysisTable[0, 35] = @"==";
-            AnalysisTable[0, 36] = @"&amp;&amp;";
+            AnalysisTable[0, 36] = @"&&";
             AnalysisTable[0, 37] = @"!";
             AnalysisTable[0, 38] = @"New";
             AnalysisTable[0, 39] = @"N";//intConstant
@@ -39336,10 +39336,10 @@ namespace miniCSharp_Compiler
             ActionsDict.Add("*", 30);
             ActionsDict.Add("%", 31);
             ActionsDict.Add("-", 32);
-            ActionsDict.Add("&lt;", 33);
-            ActionsDict.Add("&lt;=", 34);
+            ActionsDict.Add("<", 33);
+            ActionsDict.Add("<=", 34);
             ActionsDict.Add("==", 35);
-            ActionsDict.Add("&amp;&amp;", 36);
+            ActionsDict.Add("&&", 36);
             ActionsDict.Add("!", 37);
             ActionsDict.Add("New", 38);
             ActionsDict.Add("N", 39);//intConstant
@@ -39348,6 +39348,8 @@ namespace miniCSharp_Compiler
             ActionsDict.Add("S", 42);//stringConstant
             ActionsDict.Add("null", 43);
             ActionsDict.Add("$", 44);
+
+            GotoDict = new Dictionary<string, int>();
             GotoDict.Add("Start", 45);
             GotoDict.Add("Program", 46);
             GotoDict.Add("Program’", 47);
@@ -39384,8 +39386,8 @@ namespace miniCSharp_Compiler
             GotoDict.Add("Expr", 78);
             GotoDict.Add("LValue", 79);
             GotoDict.Add("Constant", 80);
-            
 
+            Productions = new List<ProductionNode>();
             Productions.Add(new ProductionNode { NonTerminalName = "Start", SymbolsProducedQty = 1 });//1
 
             Productions.Add(new ProductionNode { NonTerminalName = "Program", SymbolsProducedQty = 2 });//2

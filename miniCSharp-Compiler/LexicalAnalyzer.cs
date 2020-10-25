@@ -12,7 +12,7 @@ namespace miniCSharp_Compiler
 {
     public class LexicalAnalyzer
     {
-        List<LexemeNode> Lexemes = new List<LexemeNode>();
+        public List<LexemeNode> Lexemes = new List<LexemeNode>();
         List<string> OperatorsAndPuncChars = new List<string>();
         List<string> ReservedWords = new List<string>();
         bool EnglishVersion = false;
@@ -722,7 +722,7 @@ namespace miniCSharp_Compiler
             }
         }
 
-        public void PrintResultAndSaveToFile(string path)
+        public void PrintResultAndSaveToFile(string path, ref bool isFileLexicallyCorrect)
         {
 
             if (!Directory.Exists("C:/lexicalAnalyzer/"))
@@ -747,14 +747,13 @@ namespace miniCSharp_Compiler
 
             using (var sw = File.CreateText(path))
             {
-                var isFileOk = true;
                 foreach (var lexeme in Lexemes)
                 {
                     Console.BackgroundColor = ConsoleColor.Black;
                     Console.ForegroundColor = ConsoleColor.Red;
                     if (lexeme.Token == 'E')
                     {
-                        isFileOk = false;
+                        isFileLexicallyCorrect = false;
                         Console.WriteLine(lexeme.Description);
                         Console.WriteLine("\n");
                     }
@@ -767,7 +766,7 @@ namespace miniCSharp_Compiler
 
                 }
 
-                if (isFileOk)
+                if (isFileLexicallyCorrect)
                 {
                     Console.WriteLine("\n");
                     Console.BackgroundColor = ConsoleColor.Black;
