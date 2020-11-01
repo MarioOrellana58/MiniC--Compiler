@@ -39388,7 +39388,7 @@ namespace miniCSharp_Compiler
             GotoDict.Add("Constant", 80);
 
             Productions = new List<ProductionNode>();
-            Productions.Add(new ProductionNode { NonTerminalName = "Start", SymbolsProducedQty = 1 });//1
+            Productions.Add(new ProductionNode { NonTerminalName = "Start", SymbolsProducedQty = 1 });//1 ver si se quita
 
             Productions.Add(new ProductionNode { NonTerminalName = "Program", SymbolsProducedQty = 2 });//2
 

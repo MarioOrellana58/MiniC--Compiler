@@ -32,6 +32,7 @@ namespace miniCSharp_Compiler
             OperatorsAndPuncChars.Add(",");
             OperatorsAndPuncChars.Add(".");
             OperatorsAndPuncChars.Add(";");
+            OperatorsAndPuncChars.Add(":");
             OperatorsAndPuncChars.Add("!");
             OperatorsAndPuncChars.Add("<");
             OperatorsAndPuncChars.Add(">");
@@ -664,7 +665,7 @@ namespace miniCSharp_Compiler
             }
         }
 
-        string GetTokenDescription(char tokenID)
+        public string GetTokenDescription(char tokenID)
         {
             switch (tokenID)
             {
