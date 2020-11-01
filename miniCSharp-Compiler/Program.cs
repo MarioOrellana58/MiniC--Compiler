@@ -8,7 +8,7 @@ namespace miniCSharp_Compiler
     {
         static void Main(string[] args)
         {
-            inicio:
+            
             var fileExists = false;
             var path = string.Empty;
             var englishVersion = false;
@@ -41,7 +41,6 @@ namespace miniCSharp_Compiler
                 var syntaxAnalize = new SyntaxAnalyzer(englishVersion);
                 syntaxAnalize.AnalyzeLexemesSyntax(lexicalAnalyze.Lexemes);
             }
-            goto inicio;
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(!englishVersion ? "Tu archivo de salida se encuentra en " : "You can find your output file in ");
             Console.Write(resultFilePath);
