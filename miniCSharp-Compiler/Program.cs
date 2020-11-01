@@ -8,7 +8,7 @@ namespace miniCSharp_Compiler
     {
         static void Main(string[] args)
         {
-            var tempobject = new HelperStructures();
+            inicio:
             var fileExists = false;
             var path = string.Empty;
             var englishVersion = false;
@@ -19,7 +19,7 @@ namespace miniCSharp_Compiler
             {
                 englishVersion = true;
             }
-            var analyze = new LexicalAnalyzer(englishVersion);
+            var lexicalAnalyze = new LexicalAnalyzer(englishVersion);
 
             do
             {
@@ -32,10 +32,16 @@ namespace miniCSharp_Compiler
 
             var resultFilePath = "C:/lexicalAnalyzer/" + Path.GetFileNameWithoutExtension(path) + ".out";
 
-            analyze.ReadFileAndAnalyzeDocument(path);
-
-            analyze.PrintResultAndSaveToFile(resultFilePath);
-
+            lexicalAnalyze.ReadFileAndAnalyzeDocument(path);
+            var isLexicallyCorrect = true;
+            lexicalAnalyze.PrintResultAndSaveToFile(resultFilePath, ref isLexicallyCorrect);
+            if (isLexicallyCorrect)
+            {//Begin syntax analyze
+                Console.Clear();
+                var syntaxAnalize = new SyntaxAnalyzer(englishVersion);
+                syntaxAnalize.AnalyzeLexemesSyntax(lexicalAnalyze.Lexemes);
+            }
+            goto inicio;
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(!englishVersion ? "Tu archivo de salida se encuentra en " : "You can find your output file in ");
             Console.Write(resultFilePath);
@@ -56,7 +62,7 @@ namespace miniCSharp_Compiler
                 Console.WriteLine(!englishVersion ? "Luego de haberte asegurado presiona enter :D" : "After making sure, press enter :D");
                 Console.WriteLine("\n");
                 Console.ReadKey();
-                printingResult = analyze.PrintFile(resultFilePath);
+                printingResult = lexicalAnalyze.PrintFile(resultFilePath);
             }
 
             Console.WriteLine("\n");
