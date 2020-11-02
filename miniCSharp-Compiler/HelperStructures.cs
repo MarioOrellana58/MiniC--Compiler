@@ -14259,96 +14259,95 @@ namespace miniCSharp_Compiler
 
 
             ActionsDict = new Dictionary<string, int>();
-            ActionsDict.Add(";", 1);
-            ActionsDict.Add("I", 2);//ident
-            ActionsDict.Add("const", 3);
-            ActionsDict.Add("int", 4);
-            ActionsDict.Add("double", 5);
-            ActionsDict.Add("bool", 6);
-            ActionsDict.Add("string", 7);
-            ActionsDict.Add("[]", 8);
-            ActionsDict.Add("(", 9);
-            ActionsDict.Add(")", 10);
-            ActionsDict.Add("void", 11);
-            ActionsDict.Add(",", 12);
-            ActionsDict.Add("class", 13);
-            ActionsDict.Add("{", 14);
-            ActionsDict.Add("}", 15);
-            ActionsDict.Add(":", 16);
-            ActionsDict.Add("interface", 17);
-            ActionsDict.Add("if", 18);
-            ActionsDict.Add("else", 19);
-            ActionsDict.Add("while", 20);
-            ActionsDict.Add("for", 21);
-            ActionsDict.Add("return", 22);
-            ActionsDict.Add("break", 23);
-            ActionsDict.Add("Console", 24);
-            ActionsDict.Add(".", 25);
-            ActionsDict.Add("Writeline", 26);
-            ActionsDict.Add("=", 27);
-            ActionsDict.Add("this", 28);
-            ActionsDict.Add("+", 29);
-            ActionsDict.Add("*", 30);
-            ActionsDict.Add("%", 31);
-            ActionsDict.Add("-", 32);
-            ActionsDict.Add("<", 33);
-            ActionsDict.Add("<=", 34);
-            ActionsDict.Add("==", 35);
-            ActionsDict.Add("&&", 36);
-            ActionsDict.Add("!", 37);
-            ActionsDict.Add("New", 38);
-            ActionsDict.Add("N", 39);//intConstant
-            ActionsDict.Add("D", 40);//doubleConstant
-            ActionsDict.Add("B", 41);//boolConstant
-            ActionsDict.Add("S", 42);//stringConstant
-            ActionsDict.Add("null", 43);
-            ActionsDict.Add("$", 44);
+            ActionsDict.Add("$end", 1);
+            ActionsDict.Add("%", 2);
+            ActionsDict.Add("&&", 3);
+            ActionsDict.Add("(", 4);
+            ActionsDict.Add(")", 5);
+            ActionsDict.Add("*", 6);
+            ActionsDict.Add("+", 7);
+            ActionsDict.Add(",", 8);
+            ActionsDict.Add("-", 9);
+            ActionsDict.Add(".", 10);
+            ActionsDict.Add("!", 11);
+            ActionsDict.Add(":", 12);
+            ActionsDict.Add(";", 13);
+            ActionsDict.Add("<", 14);
+            ActionsDict.Add("<=", 15);
+            ActionsDict.Add("=", 16);
+            ActionsDict.Add("==", 17);
+            ActionsDict.Add("Console", 18);
+            ActionsDict.Add("New", 19);
+            ActionsDict.Add("Writeline", 20);
+            ActionsDict.Add("[]", 21);
+            ActionsDict.Add("bool", 22);
+            ActionsDict.Add("B", 23);//boolConstant = B
+            ActionsDict.Add("break", 24);
+            ActionsDict.Add("class", 25);
+            ActionsDict.Add("const", 26);
+            ActionsDict.Add("double", 27);
+            ActionsDict.Add("D", 28);//doubleConstant = D
+            ActionsDict.Add("else", 29);
+            ActionsDict.Add("for", 30);
+            ActionsDict.Add("I", 31);//ident = I
+            ActionsDict.Add("if", 32);
+            ActionsDict.Add("int", 33);
+            ActionsDict.Add("N", 34);//intConstant = N
+            ActionsDict.Add("interface", 35);
+            ActionsDict.Add("null", 36);
+            ActionsDict.Add("return", 37);
+            ActionsDict.Add("string", 38);
+            ActionsDict.Add("S", 39);//stringConstant = S
+            ActionsDict.Add("this", 40);
+            ActionsDict.Add("void", 41);
+            ActionsDict.Add("while", 42);
+            ActionsDict.Add("{", 43);
+            ActionsDict.Add("}", 44);
 
             GotoDict = new Dictionary<string, int>();
-            GotoDict.Add("Start", 45);
-            GotoDict.Add("Program", 46);
-            GotoDict.Add("Program’", 47);
-            GotoDict.Add("Decl", 48);
-            GotoDict.Add("VariableDecl", 49);
-            GotoDict.Add("Variable", 50);
-            GotoDict.Add("ConstDecl", 51);
-            GotoDict.Add("ConstType", 52);
-            GotoDict.Add("Type", 53);
-            GotoDict.Add("FunctionDecl", 54);
-            GotoDict.Add("Formals", 55);
-            GotoDict.Add("ClassDecl", 56);
-            GotoDict.Add("ClassDecl1", 57);
-            GotoDict.Add("ClassDecl2", 58);
-            GotoDict.Add("ClassDecl3", 59);
-            GotoDict.Add("Field", 60);
+            GotoDict.Add("BreakStmt", 45);
+            GotoDict.Add("ClassDecl", 46);
+            GotoDict.Add("ClassDecl1", 47);
+            GotoDict.Add("ClassDecl2", 48);
+            GotoDict.Add("ClassDecl3", 49);
+            GotoDict.Add("ConstDecl", 50);
+            GotoDict.Add("ConstType", 51);
+            GotoDict.Add("Constant", 52);
+            GotoDict.Add("Decl", 53);
+            GotoDict.Add("Expr", 54);
+            GotoDict.Add("Field", 55);
+            GotoDict.Add("ForStmt", 56);
+            GotoDict.Add("Formals", 57);
+            GotoDict.Add("FunctionDecl", 58);
+            GotoDict.Add("IfStmt", 59);
+            GotoDict.Add("IfStmt5", 60);
             GotoDict.Add("InterfaceDecl", 61);
-            GotoDict.Add("InterfaceDecl’", 62);
-            GotoDict.Add("Prototype", 63);
-            GotoDict.Add("StmtBlock", 64);
-            GotoDict.Add("StmtBlock1", 65);
-            GotoDict.Add("StmtBlock2", 66);
-            GotoDict.Add("StmtBlock3", 67);
-            GotoDict.Add("Stmt", 68);
-            GotoDict.Add("Stmt’", 69);
-            GotoDict.Add("IfStmt", 70);
-            GotoDict.Add("IfStmt’", 71);
-            GotoDict.Add("WhileStmt", 72);
-            GotoDict.Add("ForStmt", 73);
-            GotoDict.Add("ReturnStmt", 74);
-            GotoDict.Add("BreakStmt", 75);
-            GotoDict.Add("PrintStmt", 76);
-            GotoDict.Add("PrintStmt’", 77);
-            GotoDict.Add("Expr", 78);
-            GotoDict.Add("LValue", 79);
-            GotoDict.Add("Constant", 80);
+            GotoDict.Add("InterfaceDecl5", 62);
+            GotoDict.Add("LValue", 63);
+            GotoDict.Add("PrintStmt", 64);
+            GotoDict.Add("PrintStmt5", 65);
+            GotoDict.Add("Program", 66);
+            GotoDict.Add("Program5", 67);
+            GotoDict.Add("Prototype", 68);
+            GotoDict.Add("ReturnStmt", 69);
+            GotoDict.Add("Stmt", 70);
+            GotoDict.Add("Stmt5", 71);
+            GotoDict.Add("StmtBlock", 72);
+            GotoDict.Add("StmtBlock1", 73);
+            GotoDict.Add("StmtBlock2", 74);
+            GotoDict.Add("StmtBlock3", 75);
+            GotoDict.Add("Type", 76);
+            GotoDict.Add("Variable", 77);
+            GotoDict.Add("VariableDecl", 78);
+            GotoDict.Add("WhileStmt", 79);
 
             Productions = new List<ProductionNode>();
             Productions.Add(new ProductionNode { NonTerminalName = "Start", SymbolsProducedQty = 1 });//1 ver si se quita
 
             Productions.Add(new ProductionNode { NonTerminalName = "Program", SymbolsProducedQty = 2 });//2
 
-            Productions.Add(new ProductionNode { NonTerminalName = "Program’", SymbolsProducedQty = 2 });//3
-            Productions.Add(new ProductionNode { NonTerminalName = "Program’", SymbolsProducedQty = 0 });//4
+            Productions.Add(new ProductionNode { NonTerminalName = "Program5", SymbolsProducedQty = 2 });//3
+            Productions.Add(new ProductionNode { NonTerminalName = "Program5", SymbolsProducedQty = 0 });//4
 
             Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//5
             Productions.Add(new ProductionNode { NonTerminalName = "Decl", SymbolsProducedQty = 1 });//6
@@ -14397,8 +14396,8 @@ namespace miniCSharp_Compiler
 
             Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl", SymbolsProducedQty = 5 });//37
 
-            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl’", SymbolsProducedQty = 2 });//38
-            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl’", SymbolsProducedQty = 0 });//39
+            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl5", SymbolsProducedQty = 2 });//38
+            Productions.Add(new ProductionNode { NonTerminalName = "InterfaceDecl5", SymbolsProducedQty = 0 });//39
 
             Productions.Add(new ProductionNode { NonTerminalName = "Prototype", SymbolsProducedQty = 6 });//40
             Productions.Add(new ProductionNode { NonTerminalName = "Prototype", SymbolsProducedQty = 6 });//41
@@ -14423,13 +14422,13 @@ namespace miniCSharp_Compiler
             Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//55
             Productions.Add(new ProductionNode { NonTerminalName = "Stmt", SymbolsProducedQty = 1 });//56
 
-            Productions.Add(new ProductionNode { NonTerminalName = "Stmt’", SymbolsProducedQty = 1 });//57
-            Productions.Add(new ProductionNode { NonTerminalName = "Stmt’", SymbolsProducedQty = 0 });//58
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt5", SymbolsProducedQty = 1 });//57
+            Productions.Add(new ProductionNode { NonTerminalName = "Stmt5", SymbolsProducedQty = 0 });//58
 
             Productions.Add(new ProductionNode { NonTerminalName = "IfStmt", SymbolsProducedQty = 6 });//59
 
-            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt’", SymbolsProducedQty = 2 });//60
-            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt’", SymbolsProducedQty = 0 });//61
+            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt5", SymbolsProducedQty = 2 });//60
+            Productions.Add(new ProductionNode { NonTerminalName = "IfStmt5", SymbolsProducedQty = 0 });//61
 
             Productions.Add(new ProductionNode { NonTerminalName = "WhileStmt", SymbolsProducedQty = 5 });//62
 
@@ -14441,8 +14440,8 @@ namespace miniCSharp_Compiler
 
             Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt", SymbolsProducedQty = 8 });//66
 
-            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt’", SymbolsProducedQty = 3 });//67
-            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt’", SymbolsProducedQty = 0 });//68
+            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt5", SymbolsProducedQty = 3 });//67
+            Productions.Add(new ProductionNode { NonTerminalName = "PrintStmt5", SymbolsProducedQty = 0 });//68
 
             Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 3 });//69
             Productions.Add(new ProductionNode { NonTerminalName = "Expr", SymbolsProducedQty = 1 });//70
