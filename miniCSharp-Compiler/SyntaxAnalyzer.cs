@@ -36,11 +36,6 @@ namespace miniCSharp_Compiler
             {
                 if (lexemes[i].Token != 'M' && lexemes[i].Token != 'C')
                 {
-                    if (lexemes[i].StartRow == 7)
-                    {
-
-                    }
-                    
                     ParseLexemes(lexemes[i], ref i);
                 }
             }
@@ -48,10 +43,6 @@ namespace miniCSharp_Compiler
 
         void ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
-            if (lexemesIndex == 18)
-            {
-
-            }
             var column = 0;
             var isLexemeValue = true;
             //consume terminal symbol
