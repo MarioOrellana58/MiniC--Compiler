@@ -31,17 +31,28 @@ namespace miniCSharp_Compiler
 
         public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes)
         {
+            var dollarLexeme = new LexemeNode();
+            dollarLexeme.Value = "$end";
+            dollarLexeme.Token = ' ';
+            dollarLexeme.StartRow = lexemes[lexemes.Count -1].StartRow;
+            dollarLexeme.StartColumn = lexemes[lexemes.Count - 1].StartColumn;
+            dollarLexeme.EndColumn = lexemes[lexemes.Count - 1].EndColumn;
+            lexemes.Add(dollarLexeme);
             StatusStack.Push(0);
             for (int i = 0; i < lexemes.Count; i++)
-            {
+            {               
                 if (lexemes[i].Token != 'M' && lexemes[i].Token != 'C')
                 {
-                    ParseLexemes(lexemes[i], ref i);
+                    ParseLexemes(lexemes[i], ref i);                   
                 }
             }
-        }
 
-        void ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
+            if (IsSyntacticallyCorrect)
+            {
+                Console.WriteLine(EnglishVersion ? "Your file is syntactically correct :D" : "El archivo es sintacticamente correcto :D");
+            }
+        }
+        bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
             var column = 0;
             var isLexemeValue = true;
@@ -100,19 +111,18 @@ namespace miniCSharp_Compiler
             {
                 //Final error detected, unrecognized symbol
                 PrintActualErrors();
-                ClearVariables(ref lexemesIndex);
+                ClearVariables();
+                lexemesIndex = MaxLexemesIndex;
             }
 
-
+            return true;
         }
-        void ClearVariables(ref int lexemesIndex)
+        void ClearVariables()
         {
             StatusStack = new Stack<int>();
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            lexemesIndex = MaxLexemesIndex;
-            MaxLexemesIndex = 0;
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -122,7 +132,7 @@ namespace miniCSharp_Compiler
             {
                 MaxLexemesIndex = lexemesIndex;
                 MaxReceived = lexeme;
-                //Recorrer la matriz buscando header contra valor en el estado actual (fila), hasta encontrar el $
+                //go across the matrix looking for header against value in current state (row), until finding the $end
                 LexemesExpected(true);//Clear list and add new values
             }
             else if (MaxLexemesIndex == lexemesIndex)
@@ -134,7 +144,8 @@ namespace miniCSharp_Compiler
             {
                 //Final error, input not admitted by parser
                 PrintActualErrors();
-                ClearVariables(ref lexemesIndex);
+                ClearVariables();
+                lexemesIndex = MaxLexemesIndex;
             }
             else
             {
@@ -172,13 +183,18 @@ namespace miniCSharp_Compiler
             {
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(firstMessage + "\"" + MaxExpected[i] + "\"" + secondMessage + "\"" + MaxReceived.Value + "\"" +
-                                    onColumns + MaxReceived.StartColumn.ToString() + endColumn + MaxReceived.EndColumn.ToString() +
-                                    onLineNumber + MaxReceived.StartRow);
-                Console.WriteLine("\n");
+
+                if (MaxReceived.Value != "$end")
+                {
+                    Console.WriteLine(firstMessage + "\"" + MaxExpected[i] + "\"" + secondMessage + "\"" + MaxReceived.Value + "\"" +
+                                        onColumns + MaxReceived.StartColumn.ToString() + endColumn + MaxReceived.EndColumn.ToString() +
+                                        onLineNumber + MaxReceived.StartRow);
+                    Console.WriteLine("\n");
+                }
             }
             IsSyntacticallyCorrect = false;
         }
+
         void LexemesExpected(bool createOrAdd)
         {
             if (createOrAdd)
@@ -186,13 +202,34 @@ namespace miniCSharp_Compiler
                 MaxExpected = new List<string>();
             }
             
-            var helperColumns = Helper.ActionsDict.Count - 1;//-1 to ignore de $ symbol
-            for (int i = 1; i < helperColumns; i++)
+            var helperColumns = Helper.ActionsDict.Count;
+            for (int i = 2; i <= helperColumns; i++)//i = 2 to ignore de $end symbol
             {
                 var actualExpected = getAnalysisTableInstruction(i);
                 if (actualExpected != string.Empty && !MaxExpected.Contains(Helper.AnalysisTable[0, i]))
                 {
-                    MaxExpected.Add(Helper.AnalysisTable[0, i]);
+                    var expected = Helper.AnalysisTable[0, i];
+                    switch (expected)
+                    {
+                        case "ident":
+                            expected =  !EnglishVersion ? "identificador" : "identifier";
+                            break;
+                        case "doubleConstant":
+                            expected =  !EnglishVersion ? "constante tipo double" : "double constant ";
+                            break;
+                        case "boolConstant":
+                            expected =  !EnglishVersion ? "constante tipo bool" : "bool constant";
+                            break;
+                        case "intConstant":
+                            expected =  !EnglishVersion ? "constante tipo int" : "int constant";
+                            break;
+                        case "stringConstant":
+                            expected =  !EnglishVersion ? "cadena de caracteres (string)" : "string constant";
+                            break;
+                        default:
+                            break;
+                    }
+                    MaxExpected.Add(expected);
                 }
             }
         }

@@ -67,7 +67,7 @@ namespace miniCSharp_Compiler
             ReservedWords.Add("New");
             ReservedWords.Add("NewArray");
             ReservedWords.Add("Console");
-            ReservedWords.Add("WriteLine");
+            ReservedWords.Add("Writeline");
 
             this.EnglishVersion = englishVersion;
         }
