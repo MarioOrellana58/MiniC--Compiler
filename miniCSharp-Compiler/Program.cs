@@ -20,7 +20,7 @@ namespace miniCSharp_Compiler
                 englishVersion = true;
             }
             var lexicalAnalyze = new LexicalAnalyzer(englishVersion);
-            Inicio:
+            
             do
             {
                 Console.Clear();
@@ -42,7 +42,7 @@ namespace miniCSharp_Compiler
                 syntaxAnalize.AnalyzeLexemesSyntax(lexicalAnalyze.Lexemes);
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
-            goto Inicio;
+            
             Console.WriteLine(!englishVersion ? "Tu archivo de salida se encuentra en " : "You can find your output file in ");
             Console.Write(resultFilePath);
 
