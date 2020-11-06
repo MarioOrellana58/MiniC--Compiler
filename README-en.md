@@ -63,8 +63,8 @@ void main() {
 }
 #
 ```
-The analyzer will scan this file as described in Deep code explanation and error handling
-section, as an output you will have something like this
+The lexemes analyzer will scan this file as described in Deep code explanation and error handling
+section, as an output you will have something like this from this analyzer
 ```sh
 int        ---          in the line 1 col 1-3 is a(n) reserved word
 
@@ -179,6 +179,129 @@ b        ---          in the line 10 col 8-8 is a(n) identifier
 
 #        ---          in the line 12 col 1-1 there's an error which is: unrecognized character
 ```
+
+The next step is to check the input file syntax, only if the file doesn't have any 
+errors the compiler will check the syntax of the program. You will
+get something like this if there's an error. In case there are not, you will
+get a message telling you everything went fine. Syntax error handling is 
+more detailed in Deep code explanation and error handling section.
+
+```sh
+int        ---          in the line 1 col 1-3 is a(n) reserved word
+
+
+a        ---          in the line 1 col 5-5 is a(n) identifier
+
+
+;        ---          in the line 1 col 6-6 is a(n) operator or punctuation symbol
+
+
+void        ---          in the line 3 col 1-4 is a(n) reserved word
+
+
+main        ---          in the line 3 col 6-9 is a(n) identifier
+
+
+()        ---          in the line 3 col 10-11 is a(n) operator or punctuation symbol
+
+
+{        ---          in the line 3 col 13-13 is a(n) operator or punctuation symbol
+
+
+int        ---          in the line 4 col 4-6 is a(n) reserved word
+
+
+b        ---          in the line 4 col 8-8 is a(n) identifier
+
+
+;        ---          in the line 4 col 9-9 is a(n) operator or punctuation symbol
+
+
+int        ---          in the line 5 col 4-6 is a(n) reserved word
+
+
+a        ---          in the line 5 col 8-8 is a(n) identifier
+
+
+;        ---          in the line 5 col 9-9 is a(n) operator or punctuation symbol
+
+
+int        ---          in the line 6 col 4-6 is a(n) reserved word
+
+
+d        ---          in the line 6 col 8-8 is a(n) identifier
+
+
+;        ---          in the line 6 col 9-9 is a(n) operator or punctuation symbol
+
+
+d        ---          in the line 8 col 4-4 is a(n) identifier
+
+
+=        ---          in the line 8 col 6-6 is a(n) operator or punctuation symbol
+
+
+2        ---          in the line 8 col 8-8 is a(n) int constant
+
+
++        ---          in the line 8 col 10-10 is a(n) operator or punctuation symbol
+
+
+3        ---          in the line 8 col 12-12 is a(n) int constant
+
+
+*        ---          in the line 8 col 14-14 is a(n) operator or punctuation symbol
+
+
+4        ---          in the line 8 col 16-16 is a(n) int constant
+
+
+-        ---          in the line 8 col 18-18 is a(n) operator or punctuation symbol
+
+
+6        ---          in the line 8 col 20-20 is a(n) int constant
+
+
+;        ---          in the line 8 col 21-21 is a(n) operator or punctuation symbol
+
+
+b        ---          in the line 9 col 4-4 is a(n) identifier
+
+
+=        ---          in the line 9 col 6-6 is a(n) operator or punctuation symbol
+
+
+3        ---          in the line 9 col 8-8 is a(n) int constant
+
+
+;        ---          in the line 9 col 9-9 is a(n) operator or punctuation symbol
+
+
+a        ---          in the line 10 col 4-4 is a(n) identifier
+
+
+=        ---          in the line 10 col 6-6 is a(n) operator or punctuation symbol
+
+
+b        ---          in the line 10 col 8-8 is a(n) identifier
+
+
++        ---          in the line 10 col 10-10 is a(n) operator or punctuation symbol
+
+
+2        ---          in the line 10 col 12-12 is a(n) int constant
+
+
+;        ---          in the line 10 col 13-13 is a(n) operator or punctuation symbol
+
+
+}        ---          in the line 11 col 1-1 is a(n) operator or punctuation symbol
+
+
+#        ---          in the line 12 col 1-1 there's an error which is: unrecognized character
+```
+
+
 
 
 

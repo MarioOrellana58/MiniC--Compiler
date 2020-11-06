@@ -40,7 +40,7 @@ namespace miniCSharp_Compiler
             lexemes.Add(dollarLexeme);
             StatusStack.Push(0);
             for (int i = 0; i < lexemes.Count; i++)
-            {               
+            {
                 if (lexemes[i].Token != 'M' && lexemes[i].Token != 'C')
                 {
                     ParseLexemes(lexemes[i], ref i);                   
@@ -110,9 +110,11 @@ namespace miniCSharp_Compiler
             else
             {
                 //Final error detected, unrecognized symbol
+                MaxReceived = lexeme;
+                LexemesExpected(true);
                 PrintActualErrors();
                 ClearVariables();
-                lexemesIndex = MaxLexemesIndex;
+                lexemesIndex = lexemesIndex < MaxLexemesIndex ? MaxLexemesIndex : lexemesIndex;
             }
 
             return true;
@@ -123,6 +125,7 @@ namespace miniCSharp_Compiler
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
+            ConflictsStack = new Stack<ConflictNode>();
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -175,22 +178,21 @@ namespace miniCSharp_Compiler
             var firstMessage = EnglishVersion ? "Was expecting ": "Se esperaba ";
             var secondMessage = EnglishVersion ? ", recieved " : ", venía ";
             var onColumns = EnglishVersion ? " on columns " : " en las columnas ";
-            var onLineNumber = EnglishVersion ? " on line number: " : "en la línea número: ";
+            var onLineNumber = EnglishVersion ? " on line number: " : " en la línea número: ";
             var endColumn = EnglishVersion ? " to " : " hasta ";
-            var tokensInfo = new LexicalAnalyzer(EnglishVersion);
-
+            if (MaxReceived.Value == "$end")
+            {
+                MaxReceived.Value = EnglishVersion ? "End of file" : "Fin de archivo";
+            }
             for (int i = 0; i < MaxExpected.Count; i++)
             {
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.ForegroundColor = ConsoleColor.Red;
 
-                if (MaxReceived.Value != "$end")
-                {
-                    Console.WriteLine(firstMessage + "\"" + MaxExpected[i] + "\"" + secondMessage + "\"" + MaxReceived.Value + "\"" +
-                                        onColumns + MaxReceived.StartColumn.ToString() + endColumn + MaxReceived.EndColumn.ToString() +
-                                        onLineNumber + MaxReceived.StartRow);
-                    Console.WriteLine("\n");
-                }
+                Console.WriteLine(firstMessage + "\"" + MaxExpected[i] + "\"" + secondMessage + "\"" + MaxReceived.Value + "\"" +
+                                    onColumns + MaxReceived.StartColumn.ToString() + endColumn + MaxReceived.EndColumn.ToString() +
+                                    onLineNumber + MaxReceived.StartRow);
+                Console.WriteLine("\n");
             }
             IsSyntacticallyCorrect = false;
         }
@@ -203,9 +205,14 @@ namespace miniCSharp_Compiler
             }
             
             var helperColumns = Helper.ActionsDict.Count;
+            var actualExpected = getAnalysisTableInstruction(1);
+            if (actualExpected != string.Empty && !MaxExpected.Contains(Helper.AnalysisTable[0, 1]))
+            {
+                MaxExpected.Add(EnglishVersion ? "End of File": "Fin de archivo");
+            }
             for (int i = 2; i <= helperColumns; i++)//i = 2 to ignore de $end symbol
             {
-                var actualExpected = getAnalysisTableInstruction(i);
+                actualExpected = getAnalysisTableInstruction(i);
                 if (actualExpected != string.Empty && !MaxExpected.Contains(Helper.AnalysisTable[0, i]))
                 {
                     var expected = Helper.AnalysisTable[0, i];
@@ -290,18 +297,10 @@ namespace miniCSharp_Compiler
                 {
                     StatusStack.Pop();
                 }
-                else
-                {
-                    //error
-                }
 
                 if (ConsumedSymbols.Count > 0)
                 {
                     ConsumedSymbols.Pop();
-                }
-                else
-                {
-                    //error
                 }
             }
 
