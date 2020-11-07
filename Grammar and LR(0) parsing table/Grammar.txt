@@ -1,0 +1,90 @@
+    $accept -> Program $end
+    Program -> Decl Program5
+    Program5 -> Decl Program5
+    Program5 ->
+    Decl -> VariableDecl
+    Decl -> FunctionDecl
+    Decl -> ConstDecl
+    Decl -> ClassDecl
+    Decl -> InterfaceDecl
+    VariableDecl -> Variable ;
+    Variable -> Type ident
+    ConstDecl -> const ConstType ident ;
+    ConstType -> int
+    ConstType -> double
+    ConstType -> bool
+    ConstType -> string
+    Type -> int
+    Type -> double
+    Type -> bool
+    Type -> string
+    Type -> ident
+    Type -> Type []
+    FunctionDecl -> Type ident ( Formals ) StmtBlock
+    FunctionDecl -> void ident ( Formals ) StmtBlock
+    Formals -> Variable , Formals
+    Formals -> Variable
+    ClassDecl -> class ident ClassDecl1 ClassDecl2 { ClassDecl3 }
+    ClassDecl1 -> : ident
+    ClassDecl1 ->
+    ClassDecl2 -> , ident ClassDecl2
+    ClassDecl2 ->
+    ClassDecl3 -> Field ClassDecl3
+    ClassDecl3 ->
+    Field -> VariableDecl
+    Field -> FunctionDecl
+    Field -> ConstDecl
+    InterfaceDecl -> interface ident { InterfaceDecl5 }
+    InterfaceDecl5 -> Prototype InterfaceDecl5
+    InterfaceDecl5 ->
+    Prototype -> Type ident ( Formals ) ;
+    Prototype -> void ident ( Formals ) ;
+    StmtBlock -> { StmtBlock1 StmtBlock2 StmtBlock3 }
+    StmtBlock1 -> VariableDecl StmtBlock1
+    StmtBlock1 ->
+    StmtBlock2 -> ConstDecl StmtBlock2
+    StmtBlock2 ->
+    StmtBlock3 -> Stmt StmtBlock3
+    StmtBlock3 ->
+    Stmt -> Stmt5 ;
+    Stmt -> IfStmt
+    Stmt -> WhileStmt
+    Stmt -> ForStmt
+    Stmt -> BreakStmt
+    Stmt -> ReturnStmt
+    Stmt -> PrintStmt
+    Stmt -> StmtBlock
+    Stmt5 -> Expr
+    Stmt5 ->
+    IfStmt -> if ( Expr ) Stmt IfStmt5
+    IfStmt5 -> else Stmt
+    IfStmt5 ->
+    WhileStmt -> while ( Expr ) Stmt
+    ForStmt -> for ( Expr ; Expr ; Expr ) Stmt
+    ReturnStmt -> return Expr ;
+    BreakStmt -> break ;
+    PrintStmt -> Console . Writeline ( Expr PrintStmt5 ) ;
+    PrintStmt5 -> , Expr PrintStmt5
+    PrintStmt5 ->
+    Expr -> LValue = Expr
+    Expr -> Constant
+    Expr -> LValue
+    Expr -> this
+    Expr -> ( Expr )
+    Expr -> Expr + Expr
+    Expr -> Expr * Expr
+    Expr -> Expr % Expr
+    Expr -> - Expr
+    Expr -> Expr < Expr
+    Expr -> Expr <= Expr
+    Expr -> Expr == Expr
+    Expr -> Expr && Expr
+    Expr -> 9 Expr
+    Expr -> New ( ident )
+    LValue -> ident
+    LValue -> Expr . ident
+    Constant -> intConstant
+    Constant -> doubleConstant
+    Constant -> boolConstant
+    Constant -> stringConstant
+    Constant -> null
