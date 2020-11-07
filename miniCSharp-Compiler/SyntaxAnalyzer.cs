@@ -31,27 +31,40 @@ namespace miniCSharp_Compiler
 
         public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes)
         {
+            var dollarLexeme = new LexemeNode();
+            dollarLexeme.Value = "$end";
+            dollarLexeme.Token = ' ';
+            dollarLexeme.StartRow = lexemes[lexemes.Count - 1].StartRow;
+            dollarLexeme.StartColumn = lexemes[lexemes.Count - 1].StartColumn;
+            dollarLexeme.EndColumn = lexemes[lexemes.Count - 1].EndColumn;
+            lexemes.Add(dollarLexeme);
             StatusStack.Push(0);
+            var alreadyRecognizingLexemes = false;
             for (int i = 0; i < lexemes.Count; i++)
             {
                 if (lexemes[i].Token != 'M' && lexemes[i].Token != 'C')
                 {
-                    if (lexemes[i].StartRow == 7)
-                    {
-
+                    if (lexemes[i].Value != "$end" && lexemes[i].Token != ' ')
+                    {//The grammar is not nullable
+                        alreadyRecognizingLexemes = true;
                     }
-                    
+
+                    if (lexemes[i].Value == "$end" && lexemes[i].Token == ' ' &&
+                        StatusStack.Peek() == 0 && alreadyRecognizingLexemes)
+                    {//Finished recognizing all the grammar
+                        break;
+                    }
                     ParseLexemes(lexemes[i], ref i);
                 }
             }
-        }
 
-        void ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
-        {
-            if (lexemesIndex == 18)
+            if (IsSyntacticallyCorrect)
             {
-
+                Console.WriteLine(EnglishVersion ? "Your file is syntactically correct :D" : "El archivo es sintacticamente correcto :D");
             }
+        }
+        bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
+        {
             var column = 0;
             var isLexemeValue = true;
             //consume terminal symbol
@@ -108,20 +121,22 @@ namespace miniCSharp_Compiler
             else
             {
                 //Final error detected, unrecognized symbol
+                MaxReceived = lexeme;
+                LexemesExpected(true);
                 PrintActualErrors();
-                ClearVariables(ref lexemesIndex);
+                ClearVariables();
+                lexemesIndex = lexemesIndex < MaxLexemesIndex ? MaxLexemesIndex : lexemesIndex;
             }
 
-
+            return true;
         }
-        void ClearVariables(ref int lexemesIndex)
+        void ClearVariables()
         {
             StatusStack = new Stack<int>();
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            lexemesIndex = MaxLexemesIndex;
-            MaxLexemesIndex = 0;
+            ConflictsStack = new Stack<ConflictNode>();
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -131,7 +146,7 @@ namespace miniCSharp_Compiler
             {
                 MaxLexemesIndex = lexemesIndex;
                 MaxReceived = lexeme;
-                //Recorrer la matriz buscando header contra valor en el estado actual (fila), hasta encontrar el $
+                //go across the matrix looking for header against value in current state (row), until finding the $end
                 LexemesExpected(true);//Clear list and add new values
             }
             else if (MaxLexemesIndex == lexemesIndex)
@@ -143,7 +158,8 @@ namespace miniCSharp_Compiler
             {
                 //Final error, input not admitted by parser
                 PrintActualErrors();
-                ClearVariables(ref lexemesIndex);
+                ClearVariables();
+                lexemesIndex = MaxLexemesIndex;
             }
             else
             {
@@ -170,17 +186,21 @@ namespace miniCSharp_Compiler
 
         void PrintActualErrors()
         {
-            var firstMessage = EnglishVersion ? "Was expecting ": "Se esperaba ";
+            var firstMessage = EnglishVersion ? "Was expecting " : "Se esperaba ";
             var secondMessage = EnglishVersion ? ", recieved " : ", venía ";
             var onColumns = EnglishVersion ? " on columns " : " en las columnas ";
-            var onLineNumber = EnglishVersion ? " on line number: " : "en la línea número: ";
+            var onLineNumber = EnglishVersion ? " on line number: " : " en la línea número: ";
             var endColumn = EnglishVersion ? " to " : " hasta ";
-            var tokensInfo = new LexicalAnalyzer(EnglishVersion);
-
+            if (MaxReceived.Value == "$end")
+            {
+                MaxReceived.Value = EnglishVersion ? "End of file" : "Fin de archivo";
+            }
+            MaxExpected = MaxExpected.Distinct().ToList();
             for (int i = 0; i < MaxExpected.Count; i++)
             {
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.ForegroundColor = ConsoleColor.Red;
+
                 Console.WriteLine(firstMessage + "\"" + MaxExpected[i] + "\"" + secondMessage + "\"" + MaxReceived.Value + "\"" +
                                     onColumns + MaxReceived.StartColumn.ToString() + endColumn + MaxReceived.EndColumn.ToString() +
                                     onLineNumber + MaxReceived.StartRow);
@@ -188,21 +208,68 @@ namespace miniCSharp_Compiler
             }
             IsSyntacticallyCorrect = false;
         }
+
         void LexemesExpected(bool createOrAdd)
         {
             if (createOrAdd)
             {
                 MaxExpected = new List<string>();
             }
-            
-            var helperColumns = Helper.ActionsDict.Count - 1;//-1 to ignore de $ symbol
-            for (int i = 1; i < helperColumns; i++)
+
+            var helperColumns = Helper.ActionsDict.Count;
+            var actualExpected = string.Empty;
+            if (StatusStack.Peek() == 1)
             {
-                var actualExpected = getAnalysisTableInstruction(i);
-                if (actualExpected != string.Empty && !MaxExpected.Contains(Helper.AnalysisTable[0, i]))
+                StatusStack.Push(0);
+                for (int i = 2; i <= helperColumns; i++)
                 {
-                    MaxExpected.Add(Helper.AnalysisTable[0, i]);
+                    actualExpected = getAnalysisTableInstruction(i);
+                    var expected = Helper.AnalysisTable[0, i];
+                    TranslateHeaders(ref expected);
+                    if (actualExpected != string.Empty)
+                    {
+                        MaxExpected.Add(expected);
+                    }
                 }
+                StatusStack.Pop();
+            }
+            actualExpected = getAnalysisTableInstruction(1);
+            if (actualExpected != string.Empty)
+            {
+                MaxExpected.Add(EnglishVersion ? "End of File" : "Fin de archivo");
+            }
+            for (int i = 2; i <= helperColumns; i++)//i = 2 to ignore de $end symbol
+            {
+                actualExpected = getAnalysisTableInstruction(i);
+                var expected = Helper.AnalysisTable[0, i];
+                TranslateHeaders(ref expected);
+                if (actualExpected != string.Empty)
+                {
+                    MaxExpected.Add(expected);
+                }
+            }
+        }
+        void TranslateHeaders(ref string expected)
+        {
+            switch (expected)
+            {
+                case "ident":
+                    expected = !EnglishVersion ? "identificador" : "identifier";
+                    break;
+                case "doubleConstant":
+                    expected = !EnglishVersion ? "constante tipo double" : "double constant ";
+                    break;
+                case "boolConstant":
+                    expected = !EnglishVersion ? "constante tipo bool" : "bool constant";
+                    break;
+                case "intConstant":
+                    expected = !EnglishVersion ? "constante tipo int" : "int constant";
+                    break;
+                case "stringConstant":
+                    expected = !EnglishVersion ? "cadena de caracteres (string)" : "string constant";
+                    break;
+                default:
+                    break;
             }
         }
         void ShiftOrReduce(string analysisTableIns, bool isLexemeValue, LexemeNode lexeme, ref int lexemesIndex)
@@ -221,10 +288,19 @@ namespace miniCSharp_Compiler
                 if (headerFound)
                 {
                     analysisTableIns = getAnalysisTableInstruction(column);
-                    
+
                     gotoStatus(Convert.ToInt32(analysisTableIns));
 
                     lexemesIndex--;
+                }
+                if (ConsumedSymbols.Peek() == "Decl" || ConsumedSymbols.Peek() == "Program5")
+                {
+                    ConflictsStack = new Stack<ConflictNode>();
+                    if (MaxLexemesIndex < lexemesIndex)
+                    {
+                        MaxLexemesIndex = lexemesIndex;
+                        MaxReceived = lexeme;
+                    }
                 }
             }
         }
@@ -262,18 +338,10 @@ namespace miniCSharp_Compiler
                 {
                     StatusStack.Pop();
                 }
-                else
-                {
-                    //error
-                }
 
                 if (ConsumedSymbols.Count > 0)
                 {
                     ConsumedSymbols.Pop();
-                }
-                else
-                {
-                    //error
                 }
             }
 
