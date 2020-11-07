@@ -257,3 +257,454 @@ break
 New 
 NewArray 
 ```
+
+
+# Analizador sintáctico
+
+El siguiente paso es verificar la sintaxis del archivo de entrada, solo si el archivo no tiene ningún error léxico, el compilador verificará la sintaxis del programa. Obtendrá algo como el ejemplo de abajo si hay un error. En caso de que no los haya, recibirá un mensaje indicándole que todo salió bien. El manejo de errores de sintaxis se encuentra más detallado en la sección “Sintaxis y manejo de errores”. Para el mismo archivo utilizado anteriormente en el analizador léxico pero ahora sin el #, el resultado del analizador de sintaxis sería
+```sh
+Se esperaba "(", venía "()" en las columnas 10 hasta 11 en la línea número: 3
+
+
+Se esperaba "bool", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "class", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "const", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "double", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "identificador", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "int", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "interface", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "string", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "void", venía "{" en las columnas 13 hasta 13 en la línea número: 3
+
+
+Se esperaba "[]", venía "=" en las columnas 6 hasta 6 en la línea número: 8
+
+
+Se esperaba "identificador", venía "=" en las columnas 6 hasta 6 en la línea número: 8
+
+
+Se esperaba "bool", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "class", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "const", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "double", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "identificador", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "int", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "interface", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "string", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "void", venía "2" en las columnas 8 hasta 8 en la línea número: 8
+
+
+Se esperaba "bool", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "class", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "const", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "double", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "identificador", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "int", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "interface", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "string", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "void", venía "+" en las columnas 10 hasta 10 en la línea número: 8
+
+
+Se esperaba "bool", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "class", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "const", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "double", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "identificador", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "int", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "interface", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "string", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "void", venía "3" en las columnas 12 hasta 12 en la línea número: 8
+
+
+Se esperaba "bool", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "class", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "const", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "double", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "identificador", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "int", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "interface", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "string", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "void", venía "*" en las columnas 14 hasta 14 en la línea número: 8
+
+
+Se esperaba "bool", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "class", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "const", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "double", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "identificador", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "int", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "interface", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "string", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "void", venía "4" en las columnas 16 hasta 16 en la línea número: 8
+
+
+Se esperaba "bool", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "class", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "const", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "double", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "identificador", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "int", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "interface", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "string", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "void", venía "-" en las columnas 18 hasta 18 en la línea número: 8
+
+
+Se esperaba "bool", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "class", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "const", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "double", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "identificador", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "int", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "interface", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "string", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "void", venía "6" en las columnas 20 hasta 20 en la línea número: 8
+
+
+Se esperaba "bool", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "class", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "const", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "double", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "identificador", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "int", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "interface", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "string", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "void", venía ";" en las columnas 21 hasta 21 en la línea número: 8
+
+
+Se esperaba "[]", venía "=" en las columnas 6 hasta 6 en la línea número: 9
+
+
+Se esperaba "identificador", venía "=" en las columnas 6 hasta 6 en la línea número: 9
+
+
+Se esperaba "bool", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "class", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "const", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "double", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "identificador", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "int", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "interface", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "string", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "void", venía "3" en las columnas 8 hasta 8 en la línea número: 9
+
+
+Se esperaba "bool", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "class", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "const", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "double", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "identificador", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "int", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "interface", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "string", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "void", venía ";" en las columnas 9 hasta 9 en la línea número: 9
+
+
+Se esperaba "[]", venía "=" en las columnas 6 hasta 6 en la línea número: 10
+
+
+Se esperaba "identificador", venía "=" en las columnas 6 hasta 6 en la línea número: 10
+
+
+Se esperaba "[]", venía "+" en las columnas 10 hasta 10 en la línea número: 10
+
+
+Se esperaba "identificador", venía "+" en las columnas 10 hasta 10 en la línea número: 10
+
+
+Se esperaba "bool", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "class", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "const", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "double", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "identificador", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "int", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "interface", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "string", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "void", venía "2" en las columnas 12 hasta 12 en la línea número: 10
+
+
+Se esperaba "bool", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "class", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "const", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "double", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "identificador", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "int", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "interface", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "string", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "void", venía ";" en las columnas 13 hasta 13 en la línea número: 10
+
+
+Se esperaba "bool", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "class", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "const", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "double", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "identificador", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "int", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "interface", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "string", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "void", venía "}" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "bool", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "class", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "const", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "double", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "identificador", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "int", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "interface", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "string", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+
+
+Se esperaba "void", venía "Fin de archivo" en las columnas 1 hasta 1 en la línea número: 11
+```
+## Sintaxis y manejo de errores
+El análisis de sintaxis comienza en la clase "SyntaxAnalyzer" después de que se realiza el análisis léxico sin obtener ningún error en los lexemas analizados. El primer paso es agregar el lexema “$end” a la lista de lexemas, lo que significa el estado de final de archivo, después de esto, el recorrido de los lexemas comienza a ignorar los lexemas de los comentarios. Todo el proceso de análisis se basa en la gramática definida en los archivos “Grammar.txt” y “LR (0) parsing table.xlsx” dentro de la carpeta “Grammar and LR (0) parsing table”. El método de análisis de sintaxis implementado fue el analizador sintáctico LR(0).
+
+El analizador (función ParseLexemes) comienza a buscar el encabezado especificado por el valor del lexema leído o el token en el caso de que el valor del lexema sea una constante.
+ 
+Si el programa encuentra el encabezado, toma la cima de la pila StatusStack y la columna del encabezado para verificar si hay una instrucción en la posición encontrada.
+
+Si hay una instrucción allí, entonces la opera, si esta instrucción es un conflicto, entonces guarda el estado actual de todo (variables globales y datos usados por el analizador) para restaurar este estado y avanzar en el conflicto en caso de que haya un error dentro de la ruta tomada.
+
+Si no se encuentran instrucciones dentro de la posición de la tabla, el analizador verifica si hay un estado para restaurar, si hay al menos uno, lo restaura y el proceso de análisis continúa; si no las hay, este es el final del proceso de análisis de la entrada recibida, la lista de esperados se recrea si el índice máximo analizado es más pequeño que el índice del lexema actual, los esperados se detectan recorriendo la fila actual de la tabla de análisis en donde sí haya operaciones a realizar. Se imprimen los mensajes, todas las variables se vacían para comenzar nuevamente con el siguiente lexema dentro de la lista de lexemas.
+
+Si el programa no encuentra el encabezado entonces este es el final del proceso de análisis de la entrada recibida, se recrea la lista esperada y se imprimen los mensajes, se vacían todas las variables para comenzar de nuevo con el siguiente lexema dentro de la lista de lexemas.
+
+Para mantener la eficiencia alta cuando la producción se reduce por Decl o Program5, entonces las estructuras de conflictos y errores se configuran de nuevo por defecto, esto se hizo para eliminar antiguas rutas posibles que ya no son válidas para el contexto actual. Se seleccionaron estas producciones dado que las reducciones que se realicen aquí significan que todo lo anterior hasta ese punto es correcto.
