@@ -54,6 +54,7 @@
     Stmt -> ReturnStmt
     Stmt -> PrintStmt
     Stmt -> StmtBlock
+	Stmt -> CallStmt
     Stmt5 -> Expr
     Stmt5 ->
     IfStmt -> if ( Expr ) Stmt IfStmt5
@@ -88,3 +89,7 @@
     Constant -> boolConstant
     Constant -> stringConstant
     Constant -> null
+	CallStmt -> ident '(' Actuals ')'
+	CallStmt -> ident '.' ident '(' Actuals ')'   
+	Actuals -> Expr ',' Actuals
+	Actuals -> Expr
