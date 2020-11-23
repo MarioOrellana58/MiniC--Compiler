@@ -16,8 +16,9 @@ namespace miniCSharp_Compiler
         public string[] Instructions { get; set; }
         public LexemeNode Lexeme { get; set; }
         public bool IsLexemeValue { get; set; }
-        public List<SymbolNode> SymbolsTable { get; set; }
+        public Dictionary<int, List<SymbolNode>> SymbolsTable { get; set; }
         public string ActualScope { get; set; }
         public Dictionary<string, char> DataTypesFound { get; set; }
+        public List<string> SemanticErrors { get; set; }
     }
 }

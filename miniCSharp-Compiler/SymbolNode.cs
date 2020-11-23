@@ -16,10 +16,14 @@ namespace miniCSharp_Compiler
         public int StartColumn { get; set; }
         public int EndColumn { get; set; }
         public int StartRow { get; set; }
+        public string ErrorDescription { get; set; }
+        public bool IsActive { get; set; }
         public SymbolNode()
         {
             Name = string.Empty;
             Type = string.Empty;
+            ErrorDescription = string.Empty;
+            IsActive = true;
         }
 
         public void InitParameters()
