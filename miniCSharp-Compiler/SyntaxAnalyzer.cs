@@ -18,9 +18,15 @@ namespace miniCSharp_Compiler
         LexemeNode MaxReceived { get; set; }
         public bool IsSyntacticallyCorrect { get; set; }
         public bool EnglishVersion { get; set; }
-        public List<SymbolNode> SymbolsTable { get; set; }          //*********GUARDAR EN RESTORE STATUS**********
-        public int ActualScope { get; set; }                        //*********GUARDAR EN RESTORE STATUS**********
-        public Dictionary<string, char> DataTypesFound { get; set; }//*********GUARDAR EN RESTORE STATUS**********
+        public List<SymbolNode> SymbolsTable { get; set; }          
+        public Dictionary<string, char> DataTypesFound { get; set; }                   
+        public Stack<int> OpenScopes { get; set; }
+        public int ScopesIndex { get; set; }
+        public string ActualDataType { get; set; }
+        public List<string> SemanticErrors { get; set; }
+        public SymbolNode TempNodeForSymbolsTable { get; set; }
+        public string LastIdentValue { get; set; }
+        public bool FillingParameters { get; set; }
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -29,8 +35,15 @@ namespace miniCSharp_Compiler
             ConflictsStack = new Stack<ConflictNode>();
             MaxExpected = new List<string>();
             IsSyntacticallyCorrect = true;
+            OpenScopes = new Stack<int>();
+            OpenScopes.Push(0);
             this.EnglishVersion = englishVersion;
+            ActualDataType = string.Empty;
             InitializeDataTypesFound();
+            SemanticErrors = new List<string>();
+            TempNodeForSymbolsTable = new SymbolNode();
+            LastIdentValue = string.Empty;
+            FillingParameters = false;
         }
         void InitializeDataTypesFound()
         {
@@ -40,8 +53,7 @@ namespace miniCSharp_Compiler
             DataTypesFound.Add("bool", ' ');
             DataTypesFound.Add("string", ' ');
             DataTypesFound.Add("void", ' ');
-            DataTypesFound.Add("interface", ' ');
-            DataTypesFound.Add("Prototype", ' ');
+            DataTypesFound.Add("interface", ' ');            
         }
 
         public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes, List<SymbolNode> symbolsTable)
@@ -121,7 +133,6 @@ namespace miniCSharp_Compiler
                     conflicNode.Lexeme = lexeme;
                     conflicNode.SymbolsTable = new List<SymbolNode>(SymbolsTable);
                     conflicNode.DataTypesFound = new Dictionary<string, char>(DataTypesFound);
-                    conflicNode.ActualScope = ActualScope;
                     ConflictsStack.Push(conflicNode);
 
                     analysisTableIns = conflicNode.Instructions[0];
@@ -194,7 +205,6 @@ namespace miniCSharp_Compiler
                     StatusStack = new Stack<int>(new Stack<int>(previousStatus.StatusStack));
                     SymbolsTable = new List<SymbolNode>(previousStatus.SymbolsTable);
                     DataTypesFound = new Dictionary<string, char>(previousStatus.DataTypesFound);
-                    ActualScope = previousStatus.ActualScope;
                     ConflictsStack.Push(previousStatus);
                     ShiftOrReduce(analysisTableIns, isLexemeValue, lexeme, ref lexemesIndex);
                 }
@@ -298,20 +308,97 @@ namespace miniCSharp_Compiler
         {
             if (analysisTableIns[0] == 's')
             {
-                if (lexeme.Value == "{")
-                {                    
-                    ActualScope++;
+                var stackTop = string.Empty;
+                if (ConsumedSymbols.Count > 0)
+                {
+                    stackTop = ConsumedSymbols.Peek();
+                }
+                if (lexeme.Value == ";" || lexeme.Value == ")")
+                {
+                    if (TempNodeForSymbolsTable.StartRow != 0)
+                    {
+                        //if this value is different than 0 then 
+                        //we're filling an ident
+                        SymbolsTable.Add(TempNodeForSymbolsTable);
+                        TempNodeForSymbolsTable = new SymbolNode();
+                        FillingParameters = false;                        
+                    }
+                    //revisar si sí aquí debería añadirse el nodo
+                }
+                else if (lexeme.Token == 'I' && stackTop == "class")
+                {
+                    if (!DataTypesFound.TryGetValue(stackTop, out char value))
+                    {
+                        DataTypesFound.Add(lexeme.Value, ' ');
+                    }
+                    else
+                    {
+                        //Erorr trying to define as new an existing data type
+                    }
+                }
+                else if (lexeme.Token == 'I' && (stackTop == "Type" || stackTop == "ConstType" || stackTop == "void"))
+                {
+                    if (!FillingParameters)
+                    {
+                        TempNodeForSymbolsTable.Name = lexeme.Value;
+                        TempNodeForSymbolsTable.Scope = ScopesIndex;
+                        TempNodeForSymbolsTable.StartColumn = lexeme.StartColumn;
+                        TempNodeForSymbolsTable.EndColumn = lexeme.EndColumn;
+                        TempNodeForSymbolsTable.StartRow = lexeme.StartRow;
+                        TempNodeForSymbolsTable.Type = stackTop == "void" ? stackTop : ActualDataType;
+                    }
+                    else
+                    {
+                        if (!TempNodeForSymbolsTable.Parameters.TryGetValue(lexeme.Value, out string value))
+                        {
+                            TempNodeForSymbolsTable.Parameters.Add(lexeme.Value, ActualDataType);
+                        }
+                        else
+                        {
+                            //error
+                        }
+                    }
+                    //left value and parameters
+                }
+                else if (lexeme.Value == "(")
+                {
+                    if (ConsumedSymbols.Count > 1)
+                    {
+                        var tryIdentSymbol = ConsumedSymbols.Pop();
+                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void" ) && tryIdentSymbol == "I")
+                        {
+                            ScopesIndex++;
+                            OpenScopes.Push(ScopesIndex);
+                            FillingParameters = true;
+                            TempNodeForSymbolsTable.InitParameters();
+                        }
+                        ConsumedSymbols.Push(tryIdentSymbol);
+                    }
+                }
+                else if (lexeme.Value == "{")
+                {
+                    if (ConsumedSymbols.Peek() != ")")
+                    {
+                        ScopesIndex++;
+                        OpenScopes.Push(ScopesIndex);
+                    }
                 }
                 else if (lexeme.Value == "}")
                 {
-                    if (ActualScope > 0)
-                    {
-                        ActualScope--;
+                    if (ScopesIndex > 0 && OpenScopes.Count > 0)
+                    {                        
+                        OpenScopes.Pop();
                     }
                     else
                     {
                         //error
                     }
+
+                    
+                }
+                if (lexeme.Token == 'I')
+                {
+                    LastIdentValue = lexeme.Value;
                 }
                 shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
             }
@@ -319,6 +406,22 @@ namespace miniCSharp_Compiler
             {
                 var column = 0;
                 var headerFound = false;
+                if (analysisTableIns == "r16" || analysisTableIns == "r17" || analysisTableIns == "r18" || analysisTableIns == "r19"
+                    || analysisTableIns == "r12" || analysisTableIns == "r13" || analysisTableIns == "r14" || analysisTableIns == "r15")
+                {
+                    ActualDataType = ConsumedSymbols.Peek();
+                }
+                else if (analysisTableIns == "r20")
+                {
+                    if (DataTypesFound.TryGetValue(LastIdentValue, out char value))
+                    {
+                        ActualDataType = LastIdentValue;
+                    }
+                    else
+                    {
+                        //Erorr trying to define variable with non existing data type
+                    }
+                }
                 reduceBy(analysisTableIns);
                 headerFound = Helper.GotoDict.TryGetValue(ConsumedSymbols.Peek(), out column);
                 if (headerFound)
