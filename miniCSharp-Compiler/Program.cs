@@ -39,7 +39,7 @@ namespace miniCSharp_Compiler
             {//Begin syntax analyze
                 Console.Clear();
                 var syntaxAnalize = new SyntaxAnalyzer(englishVersion);
-                syntaxAnalize.AnalyzeLexemesSyntax(lexicalAnalyze.Lexemes);
+                syntaxAnalize.AnalyzeLexemesSyntax(lexicalAnalyze.Lexemes, lexicalAnalyze.SymbolsTable);
             }
             Console.ForegroundColor = ConsoleColor.Cyan;
             

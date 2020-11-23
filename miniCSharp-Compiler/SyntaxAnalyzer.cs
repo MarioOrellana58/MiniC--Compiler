@@ -18,6 +18,15 @@ namespace miniCSharp_Compiler
         LexemeNode MaxReceived { get; set; }
         public bool IsSyntacticallyCorrect { get; set; }
         public bool EnglishVersion { get; set; }
+        public Dictionary<int,List<SymbolNode>> SymbolsTable { get; set; }          
+        public Dictionary<string, char> DataTypesFound { get; set; }                   
+        public Stack<int> OpenScopes { get; set; }
+        public int ScopesIndex { get; set; }
+        public string ActualDataType { get; set; }
+        public List<string> SemanticErrors { get; set; }
+        public SymbolNode TempNodeForSymbolsTable { get; set; }
+        public string LastIdentValue { get; set; }
+        public bool FillingParameters { get; set; }
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -26,12 +35,31 @@ namespace miniCSharp_Compiler
             ConflictsStack = new Stack<ConflictNode>();
             MaxExpected = new List<string>();
             IsSyntacticallyCorrect = true;
+            OpenScopes = new Stack<int>();
+            OpenScopes.Push(0);
             this.EnglishVersion = englishVersion;
+            ActualDataType = string.Empty;
+            InitializeDataTypesFound();
+            SemanticErrors = new List<string>();
+            TempNodeForSymbolsTable = new SymbolNode();
+            LastIdentValue = string.Empty;
+            FillingParameters = false;            
+        }
+        void InitializeDataTypesFound()
+        {
+            DataTypesFound = new Dictionary<string, char>();
+            DataTypesFound.Add("int", ' ');
+            DataTypesFound.Add("double", ' ');
+            DataTypesFound.Add("bool", ' ');
+            DataTypesFound.Add("string", ' ');
+            DataTypesFound.Add("void", ' ');
+            DataTypesFound.Add("interface", ' ');            
         }
 
-        public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes)
+        public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes, List<SymbolNode> symbolsTable)
         {
             var dollarLexeme = new LexemeNode();
+            initializeSymbolsTable(symbolsTable);
             dollarLexeme.Value = "$end";
             dollarLexeme.Token = ' ';
             dollarLexeme.StartRow = lexemes[lexemes.Count - 1].StartRow;
@@ -60,7 +88,12 @@ namespace miniCSharp_Compiler
 
             if (IsSyntacticallyCorrect)
             {
+                Console.WriteLine(EnglishVersion ? "Your file is lexically correct :D" : "El archivo es lexicamente correcto :D");
                 Console.WriteLine(EnglishVersion ? "Your file is syntactically correct :D" : "El archivo es sintacticamente correcto :D");
+                if (SemanticErrors.Count == 0)
+                {
+                    Console.WriteLine(EnglishVersion ? "Your file is semantically correct :D" : "El archivo es semanticamente correcto :D");
+                }
             }
         }
         bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
@@ -103,6 +136,9 @@ namespace miniCSharp_Compiler
                     conflicNode.ConsumedSymbolsStack = new Stack<string>(new Stack<string>(ConsumedSymbols));
                     conflicNode.IsLexemeValue = isLexemeValue;
                     conflicNode.Lexeme = lexeme;
+                    conflicNode.SymbolsTable = new Dictionary<int, List<SymbolNode>>(SymbolsTable);
+                    conflicNode.DataTypesFound = new Dictionary<string, char>(DataTypesFound);
+                    conflicNode.SemanticErrors = new List<string>(SemanticErrors);
                     ConflictsStack.Push(conflicNode);
 
                     analysisTableIns = conflicNode.Instructions[0];
@@ -136,7 +172,7 @@ namespace miniCSharp_Compiler
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            ConflictsStack = new Stack<ConflictNode>();
+            ConflictsStack = new Stack<ConflictNode>();           
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -173,6 +209,9 @@ namespace miniCSharp_Compiler
                     previousStatus.NextInstructionIndex++;
                     ConsumedSymbols = new Stack<string>(new Stack<string>(previousStatus.ConsumedSymbolsStack));
                     StatusStack = new Stack<int>(new Stack<int>(previousStatus.StatusStack));
+                    SymbolsTable = new Dictionary<int, List<SymbolNode>>(previousStatus.SymbolsTable);
+                    DataTypesFound = new Dictionary<string, char>(previousStatus.DataTypesFound);
+                    SemanticErrors = new List<string>(previousStatus.SemanticErrors);
                     ConflictsStack.Push(previousStatus);
                     ShiftOrReduce(analysisTableIns, isLexemeValue, lexeme, ref lexemesIndex);
                 }
@@ -276,13 +315,252 @@ namespace miniCSharp_Compiler
         {
             if (analysisTableIns[0] == 's')
             {
-                shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
+                var stackTop = string.Empty;
+                if (ConsumedSymbols.Count > 0)
+                {
+                    stackTop = ConsumedSymbols.Peek();
+                }
+                if (lexeme.Value == ";" || lexeme.Value == ")")
+                {
+                    if (TempNodeForSymbolsTable.StartRow != 0)
+                    {
+                        //if this value is different than 0 then 
+                        //we're filling an ident
+                        if (!DataTypesFound.TryGetValue(TempNodeForSymbolsTable.Name, out char value))
+                        {
+                          
+                            if (validateIdentDeclInScope(TempNodeForSymbolsTable))
+                            {
+                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);                        
+                            }
+                            else
+                            {
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = string.Empty;
+                                var errorMessage = string.Empty;
+                                if (TempNodeForSymbolsTable.Parameters != null)
+                                {
+                                    if (TempNodeForSymbolsTable.Type == "void")
+                                    {
+                                        identifier = EnglishVersion ? " the procedure: \" " : " el procedimiento \" ";
+                                        errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
+                                    }
+                                    else
+                                    {
+                                        identifier = EnglishVersion ? " the function: \" " : " la funcion \" ";
+                                        errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definida en este ambito";
+                                    }
 
+                                }
+                                else
+                                {
+                                    identifier = EnglishVersion ? " the identifier: \" " : " el identificador \" ";
+                                    errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
+                                }
+                                SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                                    + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+                            }
+                        }
+                        else
+                        {
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = string.Empty;
+                            var errorMessage = string.Empty;
+                            if (TempNodeForSymbolsTable.Parameters != null)
+                            {
+                                if (TempNodeForSymbolsTable.Type == "void")
+                                {
+                                    identifier = EnglishVersion ? " the procedure: \" " : " el procedimiento \" ";
+                                    errorMessage = EnglishVersion ? " name is a data type" : " que está definiendo ya existe como tipo de dato";
+                                }
+                                else
+                                {
+                                    identifier = EnglishVersion ? " the function: \" " : " la funcion \" ";
+                                    errorMessage = EnglishVersion ? " name is a data type" : " que está definiendo ya existe como tipo de dato";
+                                }
+
+                            }
+                            else
+                            {
+                                identifier = EnglishVersion ? " the identifier: \" " : " el identificador \" ";
+                                errorMessage = EnglishVersion ? " is already defined as a data type" : " ya esta definido como un tipo de dato";
+                            }
+                            SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                                + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+   
+                        }
+                        TempNodeForSymbolsTable = new SymbolNode();
+                        FillingParameters = false;                        
+                    }
+                    //revisar si sí aquí debería añadirse el nodo
+                }
+                else if (lexeme.Token == 'I' && stackTop == "class")
+                {                                        
+                    TempNodeForSymbolsTable.Name = lexeme.Value;
+                    TempNodeForSymbolsTable.Scope = OpenScopes.Peek();
+                    TempNodeForSymbolsTable.StartColumn = lexeme.StartColumn;
+                    TempNodeForSymbolsTable.EndColumn = lexeme.EndColumn;
+                    TempNodeForSymbolsTable.StartRow = lexeme.StartRow;
+                    TempNodeForSymbolsTable.Type = stackTop;
+                    if (validateIdentDeclInScope(TempNodeForSymbolsTable) && !DataTypesFound.TryGetValue(lexeme.Value, out char value))
+                    {
+                        DataTypesFound.Add(lexeme.Value, ' ');
+                        SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);
+                    }
+                    else
+                    {
+                        //Erorr trying to define as new an existing data type
+                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                        var identifier = EnglishVersion ? " this class: \" " : " esta clase \" ";
+                        var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definida en este ambito";
+                        SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                            + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+                    }
+                    TempNodeForSymbolsTable = new SymbolNode();
+                    
+                    
+                }
+                else if (lexeme.Token == 'I' && (stackTop == "Type" || stackTop == "ConstType" || stackTop == "void" || stackTop == "interface"))
+                {
+                    if (!FillingParameters)
+                    {
+                        TempNodeForSymbolsTable.Name = lexeme.Value;
+                        TempNodeForSymbolsTable.Scope = OpenScopes.Peek();
+                        TempNodeForSymbolsTable.StartColumn = lexeme.StartColumn;
+                        TempNodeForSymbolsTable.EndColumn = lexeme.EndColumn;
+                        TempNodeForSymbolsTable.StartRow = lexeme.StartRow;
+                        TempNodeForSymbolsTable.Type = stackTop == "void" || stackTop == "interface" ? stackTop : ActualDataType;
+                    }
+                    else
+                    {
+                        var tempParameter = new SymbolNode();
+                        tempParameter.Name = lexeme.Value;
+                        tempParameter.Scope = OpenScopes.Peek();
+                        tempParameter.StartColumn = lexeme.StartColumn;
+                        tempParameter.EndColumn = lexeme.EndColumn;
+                        tempParameter.StartRow = lexeme.StartRow;
+                        tempParameter.Type = ActualDataType;
+                        if (validateIdentDeclInScope(tempParameter))
+                        {
+                            if (!DataTypesFound.TryGetValue(tempParameter.Name, out char value))
+                            {                                
+                                TempNodeForSymbolsTable.Parameters.Add(tempParameter.Name, tempParameter.Type);
+                                SymbolsTable[tempParameter.Scope].Add(tempParameter);
+                            }
+                            else
+                            {
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
+                                var errorMessage = EnglishVersion ? " is already defined as a data type" : " ya esta definido como un tipo de dato";
+                                TempNodeForSymbolsTable.IsActive = false;
+                                SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
+                                    + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
+                            }
+                        }
+                        else
+                        {
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";                            
+                            var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
+                            var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
+                            TempNodeForSymbolsTable.IsActive = false;
+                            SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
+                                + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
+                        }
+                    }
+                    //left value and parameters
+                }
+                else if (lexeme.Value == "(")
+                {
+                    if (ConsumedSymbols.Count > 1)
+                    {
+                        var tryIdentSymbol = ConsumedSymbols.Pop();
+                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void" ) && tryIdentSymbol == "I")
+                        {
+                            ScopesIndex++;
+                            OpenScopes.Push(ScopesIndex);
+                            SymbolsTable.Add(ScopesIndex, new List<SymbolNode>());
+                            FillingParameters = true;
+                            TempNodeForSymbolsTable.InitParameters();
+                        }
+                        ConsumedSymbols.Push(tryIdentSymbol);
+                    }
+                }
+                else if (lexeme.Value == "{")
+                {
+                    if (ConsumedSymbols.Peek() != ")")
+                    {
+                        if (TempNodeForSymbolsTable.Type == "interface")
+                        {
+                            if (validateIdentDeclInScope(TempNodeForSymbolsTable))
+                            {
+                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);
+                            }
+                            else
+                            {
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this interface: \" " : " esta interfaz \" ";
+                                var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definida en este ambito";
+                                SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                                    + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+                            }
+                            TempNodeForSymbolsTable = new SymbolNode();
+                        }
+                        ScopesIndex++;
+                        OpenScopes.Push(ScopesIndex);
+                        SymbolsTable.Add(ScopesIndex, new List<SymbolNode>());
+                    }
+                }
+                else if (lexeme.Value == "}")
+                {
+                    if (ScopesIndex > 0 && OpenScopes.Count > 0)
+                    {                        
+                        OpenScopes.Pop();
+                    }
+                    else
+                    {
+                        //error??
+                    }
+
+                    
+                }
+                if (lexeme.Token == 'I')
+                {
+                    LastIdentValue = lexeme.Value;
+                }
+                shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
             }
             else if (analysisTableIns[0] == 'r')
             {
                 var column = 0;
                 var headerFound = false;
+                if (analysisTableIns == "r16" || analysisTableIns == "r17" || analysisTableIns == "r18" || analysisTableIns == "r19"
+                    || analysisTableIns == "r12" || analysisTableIns == "r13" || analysisTableIns == "r14" || analysisTableIns == "r15")
+                {
+                    ActualDataType = ConsumedSymbols.Peek();
+                }
+                else if (analysisTableIns == "r20")
+                {
+                    if (DataTypesFound.TryGetValue(LastIdentValue, out char value))
+                    {
+                        ActualDataType = LastIdentValue;
+                    }
+                    else
+                    {
+                        //Erorr trying to define variable with non existing data type
+                    }
+                }
                 reduceBy(analysisTableIns);
                 headerFound = Helper.GotoDict.TryGetValue(ConsumedSymbols.Peek(), out column);
                 if (headerFound)
@@ -303,6 +581,20 @@ namespace miniCSharp_Compiler
                     }
                 }
             }
+        }
+        bool validateIdentDeclInScope (SymbolNode actualIdent)
+        {
+            if (SymbolsTable[actualIdent.Scope].Count != 0 )
+            {
+                foreach (var symbol in SymbolsTable[actualIdent.Scope])
+                {
+                    if (symbol.Name == actualIdent.Name)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
         string getAnalysisTableInstruction(int column)
         {
@@ -346,6 +638,15 @@ namespace miniCSharp_Compiler
             }
 
             ConsumedSymbols.Push(productionName);
+        }
+        void  initializeSymbolsTable(List<SymbolNode> symbolsTable) 
+        { 
+            SymbolsTable = new Dictionary<int, List<SymbolNode>>();
+            SymbolsTable.Add(0, new List<SymbolNode>());
+            for (int i = 0; i < symbolsTable.Count; i++)
+            {
+                symbolsTable[i] = symbolsTable[i];
+            }
         }
     }
 }
