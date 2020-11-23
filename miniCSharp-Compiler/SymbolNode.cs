@@ -16,7 +16,6 @@ namespace miniCSharp_Compiler
         public int StartColumn { get; set; }
         public int EndColumn { get; set; }
         public int StartRow { get; set; }
-        public int EndRow { get; set; }
         public SymbolNode()
         {
             Name = string.Empty;

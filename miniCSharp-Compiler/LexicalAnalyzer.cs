@@ -15,6 +15,7 @@ namespace miniCSharp_Compiler
         public List<LexemeNode> Lexemes = new List<LexemeNode>();
         List<string> OperatorsAndPuncChars = new List<string>();
         List<string> ReservedWords = new List<string>();
+        public List<SymbolNode> SymbolsTable = new List<SymbolNode>();
         bool EnglishVersion = false;
         public LexicalAnalyzer(bool englishVersion)
         {
@@ -660,6 +661,15 @@ namespace miniCSharp_Compiler
                 if (tempNode.Token != '\0')
                 {
                     Lexemes.Add(tempNode);
+                    if (tempNode.Token == 'I')
+                    {
+                        var tempSymbol = new SymbolNode();
+                        tempSymbol.Name = tempNode.Value;
+                        tempSymbol.StartColumn = tempNode.StartColumn;
+                        tempSymbol.StartRow = tempNode.StartRow;
+                        tempSymbol.EndColumn = tempNode.EndColumn;
+                        SymbolsTable.Add(tempSymbol);
+                    }
                 }
                 tempNode = new LexemeNode();
             }

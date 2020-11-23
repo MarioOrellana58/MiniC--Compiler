@@ -18,6 +18,9 @@ namespace miniCSharp_Compiler
         LexemeNode MaxReceived { get; set; }
         public bool IsSyntacticallyCorrect { get; set; }
         public bool EnglishVersion { get; set; }
+        public List<SymbolNode> SymbolsTable { get; set; }          //*********GUARDAR EN RESTORE STATUS**********
+        public int ActualScope { get; set; }                        //*********GUARDAR EN RESTORE STATUS**********
+        public Dictionary<string, char> DataTypesFound { get; set; }//*********GUARDAR EN RESTORE STATUS**********
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -27,11 +30,24 @@ namespace miniCSharp_Compiler
             MaxExpected = new List<string>();
             IsSyntacticallyCorrect = true;
             this.EnglishVersion = englishVersion;
+            InitializeDataTypesFound();
+        }
+        void InitializeDataTypesFound()
+        {
+            DataTypesFound = new Dictionary<string, char>();
+            DataTypesFound.Add("int", ' ');
+            DataTypesFound.Add("double", ' ');
+            DataTypesFound.Add("bool", ' ');
+            DataTypesFound.Add("string", ' ');
+            DataTypesFound.Add("void", ' ');
+            DataTypesFound.Add("interface", ' ');
+            DataTypesFound.Add("Prototype", ' ');
         }
 
-        public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes)
+        public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes, List<SymbolNode> symbolsTable)
         {
             var dollarLexeme = new LexemeNode();
+            initializeSymbolsTable(symbolsTable);
             dollarLexeme.Value = "$end";
             dollarLexeme.Token = ' ';
             dollarLexeme.StartRow = lexemes[lexemes.Count - 1].StartRow;
@@ -103,6 +119,9 @@ namespace miniCSharp_Compiler
                     conflicNode.ConsumedSymbolsStack = new Stack<string>(new Stack<string>(ConsumedSymbols));
                     conflicNode.IsLexemeValue = isLexemeValue;
                     conflicNode.Lexeme = lexeme;
+                    conflicNode.SymbolsTable = new List<SymbolNode>(SymbolsTable);
+                    conflicNode.DataTypesFound = new Dictionary<string, char>(DataTypesFound);
+                    conflicNode.ActualScope = ActualScope;
                     ConflictsStack.Push(conflicNode);
 
                     analysisTableIns = conflicNode.Instructions[0];
@@ -136,7 +155,7 @@ namespace miniCSharp_Compiler
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            ConflictsStack = new Stack<ConflictNode>();
+            ConflictsStack = new Stack<ConflictNode>();           
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -173,6 +192,9 @@ namespace miniCSharp_Compiler
                     previousStatus.NextInstructionIndex++;
                     ConsumedSymbols = new Stack<string>(new Stack<string>(previousStatus.ConsumedSymbolsStack));
                     StatusStack = new Stack<int>(new Stack<int>(previousStatus.StatusStack));
+                    SymbolsTable = new List<SymbolNode>(previousStatus.SymbolsTable);
+                    DataTypesFound = new Dictionary<string, char>(previousStatus.DataTypesFound);
+                    ActualScope = previousStatus.ActualScope;
                     ConflictsStack.Push(previousStatus);
                     ShiftOrReduce(analysisTableIns, isLexemeValue, lexeme, ref lexemesIndex);
                 }
@@ -276,8 +298,22 @@ namespace miniCSharp_Compiler
         {
             if (analysisTableIns[0] == 's')
             {
+                if (lexeme.Value == "{")
+                {                    
+                    ActualScope++;
+                }
+                else if (lexeme.Value == "}")
+                {
+                    if (ActualScope > 0)
+                    {
+                        ActualScope--;
+                    }
+                    else
+                    {
+                        //error
+                    }
+                }
                 shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
-
             }
             else if (analysisTableIns[0] == 'r')
             {
@@ -346,6 +382,14 @@ namespace miniCSharp_Compiler
             }
 
             ConsumedSymbols.Push(productionName);
+        }
+        void  initializeSymbolsTable(List<SymbolNode> symbolsTable) 
+        { 
+            SymbolsTable = new List<SymbolNode>();
+            for (int i = 0; i < symbolsTable.Count; i++)
+            {
+                symbolsTable[i] = symbolsTable[i];
+            }
         }
     }
 }
