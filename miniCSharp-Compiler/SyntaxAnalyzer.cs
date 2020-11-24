@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
+
 namespace miniCSharp_Compiler
 {
     class SyntaxAnalyzer
@@ -36,7 +37,10 @@ namespace miniCSharp_Compiler
         public string identToAssign { get; set; }
         public bool ErrorInInheritance { get; set; }
         public bool ErrorInParameters { get; set; }
-        //public List<string> CallStmtParameters { get; set; }
+        public Dictionary<int, string> CallStmtParameters { get; set; }
+        public bool FillingCallStmtParams { get; set; }
+        public string MethodNameToCall { get; set; }
+        public string AccesorObjectToMethodCall { get; set; }
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -59,6 +63,10 @@ namespace miniCSharp_Compiler
             FillingExpr = false;
             ExprDict = new Dictionary<int, string>();
             identToAssign = string.Empty;
+            CallStmtParameters = new Dictionary<int, string>();
+            FillingCallStmtParams = false;
+            MethodNameToCall = string.Empty;
+            AccesorObjectToMethodCall = string.Empty;
         }
         void InitializeDataTypesFound()
         {
@@ -159,7 +167,7 @@ namespace miniCSharp_Compiler
             }
             //var maxPerRow = getMaxNameSize + getMaxValueSize + getMaxTypeSize + getMaxColumnSize + getMaxLineSize;
             var consoleColors = Enum.GetValues(typeof(ConsoleColor));
-            var maxChars = new int[] {getMaxNameSize, getMaxValueSize, getMaxTypeSize, getMaxColumnSize, getMaxLineSize};
+            var maxChars = new int[] { getMaxNameSize, getMaxValueSize, getMaxTypeSize, getMaxColumnSize, getMaxLineSize };
             var standardizeColumns = maxChars.Max();
             var indexForColors = 0;
             var maxPerRow = standardizeColumns * 5;
@@ -288,6 +296,8 @@ namespace miniCSharp_Compiler
                     }
                 }
             }
+
+            outputFile.Close();
         }
         bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
@@ -534,6 +544,255 @@ namespace miniCSharp_Compiler
                 {
                     stackTop = ConsumedSymbols.Peek();
                 }
+                if (ConsumedSymbols.Count > 1 && lexeme.Value == "(")
+                {
+                    var tryIdentSymbol = ConsumedSymbols.Pop();
+                    if (tryIdentSymbol == "I" && (ConsumedSymbols.Peek() == "." || ConsumedSymbols.Peek() == "Stmt"))//|| tryIdentSymbol == ";" REVISAR SI PUEDEN SER MÁS CASOS DE tryIdentSymbol*********************************************************************************************
+                    {
+                        FillingCallStmtParams = true;
+                        var tempIndex = lexemesIndex;
+                        var usingAccesor = false;
+                        if (ConsumedSymbols.Peek() == ".")
+                        {
+                            usingAccesor = true;
+                        }
+
+                        //buscar accesor y nombre del metodo
+                        for (int i = tempIndex; i > 0; i--)
+                        {
+                            if (Lexemes[i].Token == 'I')//se encontró el nombre del método
+                            {
+                                if (MethodNameToCall == string.Empty)
+                                {
+                                    MethodNameToCall = Lexemes[i].Value;
+                                    if (!usingAccesor)
+                                    {
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    AccesorObjectToMethodCall = Lexemes[i].Value;
+                                    break;
+                                }
+                            }
+                        }
+
+                    }
+                    ConsumedSymbols.Push(tryIdentSymbol);
+                }
+                else if (FillingCallStmtParams && lexeme.Value == ")")
+                {
+                    //buscar el método, validar el accesor
+                    //hacer match
+                    dynamic accesorNode;
+                    if (AccesorObjectToMethodCall != string.Empty)
+                    {
+                        accesorNode = getVariableFromSymbolsTable(AccesorObjectToMethodCall);
+                    }
+                    else
+                    {
+                        accesorNode = string.Empty;
+                    }
+
+                    if (accesorNode != null)
+                    {
+                        var methodNode = getVariableFromSymbolsTable(MethodNameToCall);
+                        if (methodNode != null)
+                        {
+                            if (methodNode.IsActive)
+                            {
+                                var CallStmtParametersQty = 0;
+                                foreach (var item in CallStmtParameters)
+                                {
+                                    if (item.Value == "," || item.Key == CallStmtParameters.Keys.Last())
+                                    {
+                                        CallStmtParametersQty++;
+                                    }
+                                }
+                                if (CallStmtParametersQty == methodNode.Parameters.Count)
+                                {
+                                    var nodeParamsIndex = 0;
+                                    var insToValidate = string.Empty;
+                                    foreach (var item in CallStmtParameters)
+                                    {
+                                        if (item.Value == "," || item.Key == CallStmtParameters.Keys.Last())
+                                        {
+
+                                            insToValidate += item.Key == CallStmtParameters.Keys.Last() ? item.Value : string.Empty;
+                                            var possibleId = getVariableFromSymbolsTable(insToValidate);
+                                            if (possibleId == null)
+                                            {
+                                                var resultType = ProcessExprGetType(insToValidate);
+                                                if (resultType != "notValidOp")
+                                                {
+                                                    var paramsIndex = 0;
+                                                    foreach (var param in methodNode.Parameters)
+                                                    {
+                                                        if (paramsIndex == nodeParamsIndex)
+                                                        {
+                                                            if (param.Value != resultType)
+                                                            {
+                                                                if (param.Value == "double" && resultType == "int")
+                                                                {
+                                                                    //should cast
+                                                                    break;
+                                                                }
+                                                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                                var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                                var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                    + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                            }
+                                                            break;
+                                                        }
+                                                        paramsIndex++;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (insToValidate.Contains("\""))
+                                                    {
+                                                        var paramsIndex = 0;
+                                                        foreach (var param in methodNode.Parameters)
+                                                        {
+                                                            if (paramsIndex == nodeParamsIndex)
+                                                            {
+                                                                if (param.Value != "string")
+                                                                {
+                                                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                                    var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                                    var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                        + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                                }
+                                                                break;
+                                                            }
+                                                            paramsIndex++;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                        var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                        var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                        SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                            + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage);
+                                                    }
+                                                    //operacion invalida en envio de parametro
+                                                }
+                                            }
+                                            else
+                                            {
+                                                //AQUI ES CONTRA possibleId.Type
+                                                var paramsIndex = 0;
+                                                foreach (var param in methodNode.Parameters)
+                                                {
+                                                    if (paramsIndex == nodeParamsIndex)
+                                                    {
+                                                        if (param.Value != possibleId.Type)
+                                                        {
+                                                            if (param.Value == "double" && possibleId.Type == "int")
+                                                            {
+                                                                //should cast
+                                                                break;
+                                                            }
+                                                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                            var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                            var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                        }
+                                                        break;
+                                                    }
+                                                    paramsIndex++;
+                                                }
+                                            }
+                                            //ProcessExprGetType                                               
+                                            nodeParamsIndex++;
+                                            insToValidate = string.Empty;
+                                        }
+                                        else
+                                        {
+                                            insToValidate += item.Value;
+                                        }
+                                        //determinar si es algun tipo de id, si sí validar contra el recuperado, sino contra el tipo
+                                        //que me arroje producir expr
+
+                                    }
+                                }
+                                else
+                                {
+                                    //no se envio la cantidad de argumentos suficientes
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                    var errorMessage = EnglishVersion ? " didn't send enough parameters" : " no envio parametros suficientes ";
+                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                        + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage + " expected " + methodNode.Parameters.Count);
+                                }
+                            }
+                            else
+                            {
+                                //el método tiene problemas en su declaración
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this method or function: \" " : " la función o metodo: \" ";
+                                var errorMessage = EnglishVersion ? " has problems in its declaration" : " tiene problemas en su declaración ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage);
+                            }
+                        }
+                        else
+                        {
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this method or function: \" " : " la función o metodo: \" ";
+                            var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creado en ningun ambito abierto ";
+                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage);
+                        }
+                    }
+                    else
+                    {
+                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                        var identifier = EnglishVersion ? " this accesor object: \" " : " el objeto accesor: \" ";
+                        var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creado en ningun ambito abierto ";
+                        SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                            + lexeme.EndColumn + " **ERROR** " + identifier + " " + AccesorObjectToMethodCall + " \"" + errorMessage);
+                    }
+
+
+
+
+
+                    CallStmtParameters = new Dictionary<int, string>();
+                    MethodNameToCall = string.Empty;
+                    AccesorObjectToMethodCall = string.Empty;
+                    FillingCallStmtParams = false;
+                }
+                else if (FillingCallStmtParams)
+                {
+                    if (!CallStmtParameters.TryGetValue(lexemesIndex, out string val))
+                    {
+
+                        CallStmtParameters.Add(lexemesIndex, lexeme.Value);
+
+                    }
+                }
                 if (stackTop == "=")
                 {
                     FillingExpr = true;
@@ -684,23 +943,9 @@ namespace miniCSharp_Compiler
                         }
                         //procesar EXPR
                     }
-                    else
-                    {
-                        //asignación no posible
-                        //-----------------------------------------------------------------------------------
-                        /* var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
-                         var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
-                         var endColumn = EnglishVersion ? " to " : " hasta ";
-                         var identifier = EnglishVersion ? " you can't assignate this \" " : " no puede asignar esto \" ";
-                         var errorMessage = EnglishVersion ? " the data types do not match " : " los tipos de dato no coinciden ";
-                         SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
-                                 + lexeme.EndColumn + " **ERROR** " + identifier + SymbolsTable[0][SymbolsTable[0].Count - 1].Name + " \"" + errorMessage);
-                        */
-                    }
                     ExprDict = new Dictionary<int, string>();
                 }
-                else
-                if ((stackTop == ":" || stackTop == ",") && FillingClassInheritance && lexeme.Token == 'I')
+                else if ((stackTop == ":" || stackTop == ",") && FillingClassInheritance && lexeme.Token == 'I')
                 {
                     if (DataTypesFound.TryGetValue(lexeme.Value, out char value))
                     {
@@ -986,6 +1231,7 @@ namespace miniCSharp_Compiler
 
 
                 }
+
                 if (lexeme.Token == 'I')
                 {
                     LastIdentValue = lexeme.Value;
@@ -1029,6 +1275,7 @@ namespace miniCSharp_Compiler
 
                     }
                 }
+
                 reduceBy(analysisTableIns);
                 headerFound = Helper.GotoDict.TryGetValue(ConsumedSymbols.Peek(), out column);
                 if (headerFound)
@@ -1195,6 +1442,48 @@ namespace miniCSharp_Compiler
                 //maybe en los tipos de dato
             }
             return null;
+        }
+
+
+        dynamic ProcessExprGetType(string expr)
+        {
+            if (expr.Contains("True"))
+            {
+                string pattern = @"\bTrue\b";
+                string replace = "true";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            if (expr.Contains("False"))
+            {
+                string pattern = @"\bFalse\b";
+                string replace = "false";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            dynamic result;
+            try
+            {
+                result = Eval.Execute<dynamic>(expr);//validar /0
+
+                switch (result.GetType().Name)
+                {
+                    case "Int32":
+                        return "int";
+                    case "Int16":
+                        return "int";
+                    case "Int64":
+                        return "int";
+                    case "Boolean":
+                        return "bool";
+                    case "Double":
+                        return "double";
+                    default:
+                        return "notValidOp";
+                }
+            }
+            catch (Exception)
+            {
+                return "notValidOp";
+            }
         }
     }
 }
