@@ -708,3 +708,34 @@ Si no se encuentran instrucciones dentro de la posición de la tabla, el analiza
 Si el programa no encuentra el encabezado entonces este es el final del proceso de análisis de la entrada recibida, se recrea la lista esperada y se imprimen los mensajes, se vacían todas las variables para comenzar de nuevo con el siguiente lexema dentro de la lista de lexemas.
 
 Para mantener la eficiencia alta cuando la producción se reduce por Decl o Program5, entonces las estructuras de conflictos y errores se configuran de nuevo por defecto, esto se hizo para eliminar antiguas rutas posibles que ya no son válidas para el contexto actual. Se seleccionaron estas producciones dado que las reducciones que se realicen aquí significan que todo lo anterior hasta ese punto es correcto.
+
+##Tabla de Símbolos:
+Estructura:
+La tabla de símbolos (nombre de variable SymbolsTable) está definida como un diccionario cuya clave es un número (int) y su valor es un listado de símbolos (SymbolNode). La llave del diccionario representa el ámbito de todos los símbolos contenidos en ese valor del diccionario. El valor representa toda definición dentro del ámbito en cuestión.
+Estructura de SymbolNode:
+Esta estructura de datos es utilizada para almacenar información relevante del identificador que se está reconociendo. Se almacena el nombre del identificador, el valor de este, el ámbito donde se encuentra, su columna de inicio y fin, la línea donde se encuentra este identificador, una bandera que indica si esta activo o no, está se utiliza en la comprobación de tipos en la producción de CallStmt (ver sección de semántica para tener más detalles del uso de esta bandera). Por último, se almacena el tipo del símbolo, este puede ser de tipo “class”, “interface”, “void” o cualquiera de los tipos de dato que puedan darse por la producción “Type”, validando si se da la producción que se encuentra en la línea No.22 del archivo “Grammar.txt” que el identificador por el que se está dando la sustitución este definido en el listado de tipos de dato válidos para el archivo actual (estos tipos de dato se almacenan en un diccionario para facilitar la búsqueda de tipos de datos válidos (DataTypesFound).
+Sí el valor del tipo del SymbolNode es “void” o bien se encuentra entre las producciones de declaración de funciones o prototipos, se inicializa un diccionario en SymbolNode, que almacenará todos los parámetros que tenga la definición de la función actual. Por cada parámetro de la función se almacenará el nombre de este y su tipo de dato, esto se almacenará en un diccionario para validar que no existan variables repetidas dentro de los parámetros de cada función. 
+
+
+Análisis semántico:
+Para el manejo de errores de esta fase, todos los errores detectados son los errores que encontró el analizador semántico tomando el camino correcto del análisis sintáctico. Debido a que solo por las producciones que sean sintácticamente correctas debe realizarse un análisis semántico. 
+El análisis sintáctico y semántico se van dando en paralelo, pero los errores semánticos del archivo únicamente se mostrarán si el archivo ingresado es sintácticamente correcto, pero semánticamente incorrecto, si todo está en orden se le indicará al usuario que el archivo ingresado es léxica, sintáctica y semánticamente correcto.
+Se imprimirá la tabla de símbolos independientemente del resultado de análisis semántico, es decir, aunque el archivo ingresado posea errores semánticos, siempre se mostrará la tabla de símbolos completa.
+
+
+Clases:
+Para la declaración de clases, se valida que no exista ninguna clase declarada con ese nombre antes de agregarla a la tabla de símbolos. Está validación se da en el ámbito donde se encuentra la clase y también en el diccionario de tipos de dato que ya han sido reconocidos por el compilador. Sí no se encuentra ninguna definición previa, esta es agregada como un símbolo válido a la tabla de símbolos, de lo contrario se agrega una descripción para el error en cuestión y este error es agregado a la lista de errores semánticos.
+Se valida que, para la herencia de otras clases, la clase actual solo herede una única vez por cada clase reconocida hasta el momento. En cada clase que se está enviando para herencia, se valida que esa clase ya se encuentre entre los tipos de dato reconocidos por el compilador, caso contrario se indica el error.
+Por cada clase se almacena como parámetros, todas las clases que reciba como herencia.
+Procedimientos, prototipos y funciones: 
+Se valida que no exista ningún otro método con el nombre del actual en el ámbito donde se encuentra el actual, si existe un método con el mismo nombre, se indicará el error. Se validará que cada parámetro tenga un tipo de dato que ya se haya reconocido como válido por el compilador. El nombre de cada variable dentro de los parámetros debe ser distinto, por lo que, en caso de encontrar alguna variable repetida en los parámetros, se indicará el error y se cambiará a falso el valor de la bandera para el método en cuestión.
+Definición de variables y constantes:
+Se valida que no exista ninguna otra variable o constante con ese nombre para el ámbito donde se encuentra la declaración, si existe una variable con el mismo nombre y ámbito se almacena el error. Se valida que el tipo de dato con el que se quiere declarar la variable sea alguno que ya reconoció el compilador, en caso contrario se indicará el error.
+Asignación a variables y constantes:
+Se debe validar que el elemento al que se le va a hacer la asignación exista dentro de la tabla de símbolos y este en un ámbito abierto o accesible, para la asignación de variables el compilador puede visitar todos los ámbitos que son accesibles desde ese punto del archivo en busca de una variable para asignarle su valor. Debido a que pueden declararse dos variables con el mismo nombre, pero diferente ámbito, se asignará el valor de la asignación a la variable más interna que se encuentre dentro del análisis. 
+Sí se sabe que existe la variable, previo a la asignación debe validarse que el tipo de dato de la variable sea igual que el valor que va a recibir, en caso contrario indicar el error.
+
+Operaciones:
+Debe validarse que todos los operandos sean del mismo tipo o bien de tipos por los que se pueda manejar una coerción, caso contrario indicar el error. 
+Si se utilizan variables para las operaciones, debe validarse que estas existan dentro del ámbito actual o bien que estas sean accesibles, caso contrario indicar el error.  Toda variable utilizada en una operación debe tener un valor definido, en caso contrario indicar el error.
+

@@ -720,3 +720,36 @@ If the program does not find the header then this is the end of the parsing proc
 
 To keep efficiency high when production is reduced by Decl or Program5 then the conflicts and errors structures are set to default again, this was made to delete old possible paths that are no longer valid for the current context. These productions were choosen because if reduction is made here then everything is correct until this point.
 
+
+
+##Symbol Table:
+
+
+Structure:
+The symbol table (variable name SymbolsTable) is defined as a dictionary whose key is a number (int) and its value is a list of symbols (SymbolNode). The dictionary key represents the range of all symbols contained in that dictionary value. The value represents any definition within the scope in question.
+Structure of SymbolNode:
+This data structure is used to store information relevant to the identifier being recognized. The name of the identifier, its value, the scope where it is located, its start and end columns, the line where this identifier is located, a flag that indicates if it is active or not, is used in the type checking in CallStmt production (see semantics section for more details about the use of this flag). Finally, the symbol type is stored, this can be "class", "interface", "void" or any of the data types that may be given by the production "Type", validating if the production is in line No.22 of the file "Grammar.txt" that the identifier for which the substitution is being given is defined in the list of valid data types for the current file (these data types are stored in a dictionary to facilitate the search for valid data types (DataTypesFound).
+If the value of the SymbolNode type is "void" or is between the productions of function declaration or prototypes, a dictionary is initialized in SymbolNode, which will store all the parameters that the definition of the current function has. For each parameter of the function the name of this one and its data type will be stored, this will be stored in a dictionary to validate that there are no repeated variables within the parameters of each function. 
+
+
+Semantic analysis:
+For the error handling of this phase, all the errors detected are the errors found by the semantic analyzer taking the correct path of the syntactic analysis. Because only for the productions that are syntactically correct should be performed a semantic analysis. 
+The syntactic and semantic analysis are given in parallel, but the semantic errors of the file will only be shown if the entered file is syntactically correct, but semantically incorrect. If everything is in order, the user will be told that the entered file is lexically, syntactically and semantically correct.
+The symbol table will be printed regardless of the result of semantic analysis, i.e. even if the input file has semantic errors, the complete symbol table will always be displayed.
+
+
+Classes:
+For the declaration of classes, it is validated that there is no class declared with that name before adding it to the symbol table. This validation is given in the area where the class is located and also in the dictionary of data types that have already been recognized by the compiler. If no previous definition is found, it is added as a valid symbol to the symbol table, otherwise a description is added for the error in question and this error is added to the list of semantic errors.
+It is validated that, for the inheritance of other classes, the current class only inherits once for each class recognized so far. In each class that is being sent for inheritance, it is validated that that class is already among the data types recognized by the compiler, otherwise the error is indicated.
+For each class is stored as parameters, all the classes that it receives as inheritance.
+
+
+Procedures, prototypes and functions: 
+It is validated that there is no other method with the name of the current one in the area where the current one is, if there is a method with the same name, the error will be indicated. It is validated that each parameter has a data type that has already been recognized as valid by the compiler. The name of each variable within the parameters should be different, so that, if you find any variable repeated in the parameters, it will indicate the error and change to false the value of the flag for the method in question.
+
+
+Definition of variables and constants:
+It is validated that no other variable or constant with that name exists for the scope where the declaration is found, if a variable with the same name and scope exists, the error is stored. It validates that the data type with which you want to declare the variable is one that already recognized the compiler, otherwise it will indicate the error.
+
+Assignment to variables and constants:
+It is necessary to validate that the element to which the assignment is going to be made exists inside the symbol table and this in an open or accessible scope, for the assignment of variables the compiler can visit all the scopes that are accessible from that point of the file in search of a variable to assign it its value. Because they can d

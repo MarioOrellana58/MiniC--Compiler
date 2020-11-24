@@ -115,6 +115,8 @@ namespace miniCSharp_Compiler
                     PrintSemanticErrors();
                 }
                 PrintSymbolsTable();
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.WriteLine();
             }
         }
         void PrintSemanticErrors()
@@ -130,7 +132,143 @@ namespace miniCSharp_Compiler
         }
         void PrintSymbolsTable()
         {
+            var getMaxNameSize = 0;
+            var getMaxValueSize = 0;
+            var getMaxTypeSize = 0;
+            var getMaxColumnSize = 0;
+            var getMaxLineSize = 0;
+            for (int i = 0; i < SymbolsTable.Count(); i++)
+            {
+                for (int j = 0; j < SymbolsTable[i].Count(); j++)
+                {
+                    if (SymbolsTable[i][j] != null)
+                    {
+                        getMaxNameSize = getMaxNameSize < SymbolsTable[i][j].Name.Length ? SymbolsTable[i][j].Name.Length : getMaxNameSize;
+                        getMaxTypeSize = getMaxTypeSize < SymbolsTable[i][j].Type.Length ? SymbolsTable[i][j].Type.Length : getMaxTypeSize;
+                        getMaxLineSize = getMaxLineSize < SymbolsTable[i][j].StartRow.ToString().Length ? SymbolsTable[i][j].StartRow.ToString().Length : getMaxLineSize;
+                        getMaxColumnSize = getMaxColumnSize < SymbolsTable[i][j].StartColumn.ToString().Length ? SymbolsTable[i][j].StartColumn.ToString().Length : getMaxLineSize;
+                        getMaxColumnSize = getMaxColumnSize < SymbolsTable[i][j].EndColumn.ToString().Length ? SymbolsTable[i][j].EndColumn.ToString().Length : getMaxLineSize;
+                        if (SymbolsTable[i][j].Value != null)
+                        {
+                            getMaxValueSize = getMaxValueSize < SymbolsTable[i][j].Value.ToString().Length ? SymbolsTable[i][j].Value.ToString().Length : getMaxValueSize;
+                        }
+                    }
+                }
+            }
+            //var maxPerRow = getMaxNameSize + getMaxValueSize + getMaxTypeSize + getMaxColumnSize + getMaxLineSize;
+            var consoleColors = Enum.GetValues(typeof(ConsoleColor));
+            var maxChars = new int[] {getMaxNameSize, getMaxValueSize, getMaxTypeSize, getMaxColumnSize, getMaxLineSize};
+            var standardizeColumns = maxChars.Max();
+            var indexForColors = 0;
+            var maxPerRow = standardizeColumns * 5;
+            Console.ForegroundColor = ConsoleColor.White;
+            //Printing headers for symbolsTable
+            for (int i = 0; i < maxPerRow; i++)
+            {
+                if (i == 0)
+                {
+                    Console.Write("|");
+                }
+                if (i == standardizeColumns || i + 1 == maxPerRow)
+                {
+                    Console.Write("|");
+                    standardizeColumns *= 2;
+                }
+                else
+                {
+                    Console.Write("-");
+                }
+            }
 
+            Console.WriteLine();
+            var headersVector = new string[] {EnglishVersion? "Name": "Nombre", EnglishVersion ? "type" : "tipo", EnglishVersion ? "value" : "valor/es"
+                , EnglishVersion ? "Row" : "fila", EnglishVersion? "Columns": "Columnas" };
+            for (int i = 0; i < headersVector.Count(); i++)
+            {
+                Console.Write("|  ");
+                Console.Write(headersVector[i]);
+                for (int j = 0; j < maxChars.Max() - headersVector[i].Length - 2; j++)
+                {
+                    Console.Write(" ");
+                }
+
+            }
+
+            Console.WriteLine();
+            for (int i = 0; i < maxPerRow; i++)
+            {
+                if (i == 0)
+                {
+                    Console.Write("|");
+                }
+                if (i == standardizeColumns || i + 1 == maxPerRow)
+                {
+                    Console.Write("|");
+                    standardizeColumns *= 2;
+                }
+                else
+                {
+                    Console.Write("-");
+                }
+            }
+
+            for (int i = 0; i < SymbolsTable.Count(); i++)
+            {
+                ConsoleColor actualColor = new ConsoleColor();
+                foreach (ConsoleColor color in consoleColors)
+                {
+                    actualColor = color;
+                    if (consoleColors.Length <= i)
+                    {
+                        indexForColors = 0;
+                        break;
+                    }
+                    if (indexForColors == i)
+                    {
+                        indexForColors = 0;
+                        break;
+                    }
+                    indexForColors++;
+                }
+                Console.BackgroundColor = actualColor;
+
+                for (int j = 0; j < SymbolsTable[i].Count(); j++)
+                {
+                    Console.WriteLine();
+                    var valueForType = string.Empty;
+                    if (SymbolsTable[i][j].Value != null)
+                    {
+                        valueForType = SymbolsTable[i][j].Value.ToString();
+                    }
+                    else
+                    {
+                        valueForType = "-";
+                    }
+                    var actualValues = new string[] { SymbolsTable[i][j].Name, SymbolsTable[i][j].Type, valueForType
+                        , SymbolsTable[i][j].StartRow.ToString(), SymbolsTable[i][j].StartColumn.ToString() + " - " + SymbolsTable[i][j].EndColumn.ToString()};
+                    for (int k = 0; k < actualValues.Count(); k++)
+                    {
+                        Console.Write("|  ");
+                        if (actualValues[k] != null)
+                        {
+                            Console.Write(actualValues[k]);
+                            for (int h = 0; h < maxChars.Max() - actualValues[k].Length - 2; h++)
+                            {
+                                Console.Write(" ");
+                            }
+                        }
+                        else
+                        {
+                            Console.Write("-");
+                            for (int h = 0; h < maxChars.Max() - 3; h++)
+                            {
+                                Console.Write(" ");
+                            }
+                        }
+
+                    }
+                }
+            }
         }
         bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
