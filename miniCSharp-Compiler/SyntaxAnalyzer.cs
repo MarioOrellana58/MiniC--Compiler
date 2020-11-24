@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-
+using System.IO;
 namespace miniCSharp_Compiler
 {
     class SyntaxAnalyzer
@@ -137,6 +137,8 @@ namespace miniCSharp_Compiler
             var getMaxTypeSize = 0;
             var getMaxColumnSize = 0;
             var getMaxLineSize = 0;
+
+            var outputFile = new StreamWriter("SymbolsTable.txt");
             for (int i = 0; i < SymbolsTable.Count(); i++)
             {
                 for (int j = 0; j < SymbolsTable[i].Count(); j++)
@@ -168,47 +170,58 @@ namespace miniCSharp_Compiler
                 if (i == 0)
                 {
                     Console.Write("|");
+                    outputFile.Write("|");
                 }
                 if (i == standardizeColumns || i + 1 == maxPerRow)
                 {
                     Console.Write("|");
+                    outputFile.Write("|");
                     standardizeColumns *= 2;
                 }
                 else
                 {
                     Console.Write("-");
+                    outputFile.Write("-");
                 }
             }
 
             Console.WriteLine();
+            outputFile.WriteLine();
             var headersVector = new string[] {EnglishVersion? "Name": "Nombre", EnglishVersion ? "type" : "tipo", EnglishVersion ? "value" : "valor/es"
                 , EnglishVersion ? "Row" : "fila", EnglishVersion? "Columns": "Columnas" };
             for (int i = 0; i < headersVector.Count(); i++)
             {
                 Console.Write("|  ");
                 Console.Write(headersVector[i]);
+                outputFile.Write("|  ");
+                outputFile.Write(headersVector[i]);
                 for (int j = 0; j < maxChars.Max() - headersVector[i].Length - 2; j++)
                 {
                     Console.Write(" ");
+                    outputFile.Write(" ");
                 }
 
             }
 
             Console.WriteLine();
+            outputFile.WriteLine();
             for (int i = 0; i < maxPerRow; i++)
             {
                 if (i == 0)
                 {
                     Console.Write("|");
+                    outputFile.Write("|");
                 }
                 if (i == standardizeColumns || i + 1 == maxPerRow)
                 {
                     Console.Write("|");
+                    outputFile.Write("|");
                     standardizeColumns *= 2;
                 }
                 else
                 {
                     Console.Write("-");
+                    outputFile.Write("-");
                 }
             }
 
@@ -235,6 +248,7 @@ namespace miniCSharp_Compiler
                 for (int j = 0; j < SymbolsTable[i].Count(); j++)
                 {
                     Console.WriteLine();
+                    outputFile.WriteLine();
                     var valueForType = string.Empty;
                     if (SymbolsTable[i][j].Value != null)
                     {
@@ -249,20 +263,25 @@ namespace miniCSharp_Compiler
                     for (int k = 0; k < actualValues.Count(); k++)
                     {
                         Console.Write("|  ");
+                        outputFile.Write("|  ");
                         if (actualValues[k] != null)
                         {
                             Console.Write(actualValues[k]);
+                            outputFile.Write(actualValues[k]);
                             for (int h = 0; h < maxChars.Max() - actualValues[k].Length - 2; h++)
                             {
                                 Console.Write(" ");
+                                outputFile.Write(" ");
                             }
                         }
                         else
                         {
                             Console.Write("-");
+                            outputFile.Write("-");
                             for (int h = 0; h < maxChars.Max() - 3; h++)
                             {
                                 Console.Write(" ");
+                                outputFile.Write(" ");
                             }
                         }
 
