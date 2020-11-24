@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Z.Expressions;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace miniCSharp_Compiler
 {
@@ -18,8 +21,8 @@ namespace miniCSharp_Compiler
         LexemeNode MaxReceived { get; set; }
         public bool IsSyntacticallyCorrect { get; set; }
         public bool EnglishVersion { get; set; }
-        public Dictionary<int,List<SymbolNode>> SymbolsTable { get; set; }          
-        public Dictionary<string, char> DataTypesFound { get; set; }                   
+        public Dictionary<int, List<SymbolNode>> SymbolsTable { get; set; }
+        public Dictionary<string, char> DataTypesFound { get; set; }
         public Stack<int> OpenScopes { get; set; }
         public int ScopesIndex { get; set; }
         public string ActualDataType { get; set; }
@@ -27,6 +30,17 @@ namespace miniCSharp_Compiler
         public SymbolNode TempNodeForSymbolsTable { get; set; }
         public string LastIdentValue { get; set; }
         public bool FillingParameters { get; set; }
+        public bool FillingClassInheritance { get; set; }
+        public bool FillingExpr { get; set; }
+        public Dictionary<int, string> ExprDict { get; set; }
+        public List<LexemeNode> Lexemes { get; set; }
+        public string identToAssign { get; set; }
+        public bool ErrorInInheritance { get; set; }
+        public bool ErrorInParameters { get; set; }
+        public Dictionary<int, string> CallStmtParameters { get; set; }
+        public bool FillingCallStmtParams { get; set; }
+        public string MethodNameToCall { get; set; }
+        public string AccesorObjectToMethodCall { get; set; }
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -43,7 +57,16 @@ namespace miniCSharp_Compiler
             SemanticErrors = new List<string>();
             TempNodeForSymbolsTable = new SymbolNode();
             LastIdentValue = string.Empty;
-            FillingParameters = false;            
+            FillingParameters = false;
+            FillingClassInheritance = false;
+            ErrorInInheritance = false;
+            FillingExpr = false;
+            ExprDict = new Dictionary<int, string>();
+            identToAssign = string.Empty;
+            CallStmtParameters = new Dictionary<int, string>();
+            FillingCallStmtParams = false;
+            MethodNameToCall = string.Empty;
+            AccesorObjectToMethodCall = string.Empty;
         }
         void InitializeDataTypesFound()
         {
@@ -53,12 +76,13 @@ namespace miniCSharp_Compiler
             DataTypesFound.Add("bool", ' ');
             DataTypesFound.Add("string", ' ');
             DataTypesFound.Add("void", ' ');
-            DataTypesFound.Add("interface", ' ');            
+            DataTypesFound.Add("interface", ' ');
         }
 
         public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes, List<SymbolNode> symbolsTable)
         {
             var dollarLexeme = new LexemeNode();
+            Lexemes = new List<LexemeNode>(lexemes);
             initializeSymbolsTable(symbolsTable);
             dollarLexeme.Value = "$end";
             dollarLexeme.Token = ' ';
@@ -76,7 +100,6 @@ namespace miniCSharp_Compiler
                     {//The grammar is not nullable
                         alreadyRecognizingLexemes = true;
                     }
-
                     if (lexemes[i].Value == "$end" && lexemes[i].Token == ' ' &&
                         StatusStack.Peek() == 0 && alreadyRecognizingLexemes)
                     {//Finished recognizing all the grammar
@@ -86,6 +109,7 @@ namespace miniCSharp_Compiler
                 }
             }
 
+
             if (IsSyntacticallyCorrect)
             {
                 Console.WriteLine(EnglishVersion ? "Your file is lexically correct :D" : "El archivo es lexicamente correcto :D");
@@ -94,14 +118,200 @@ namespace miniCSharp_Compiler
                 {
                     Console.WriteLine(EnglishVersion ? "Your file is semantically correct :D" : "El archivo es semanticamente correcto :D");
                 }
+                else
+                {
+                    PrintSemanticErrors();
+                }
+                PrintSymbolsTable();
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.WriteLine();
             }
+        }
+        void PrintSemanticErrors()
+        {
+            for (int i = 0; i < SemanticErrors.Count; i++)
+            {
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Red;
+
+                Console.WriteLine(SemanticErrors[i]);
+                Console.WriteLine("\n");
+            }
+        }
+        void PrintSymbolsTable()
+        {
+            var getMaxNameSize = 0;
+            var getMaxValueSize = 0;
+            var getMaxTypeSize = 0;
+            var getMaxColumnSize = 0;
+            var getMaxLineSize = 0;
+
+            var outputFile = new StreamWriter("SymbolsTable.txt");
+            for (int i = 0; i < SymbolsTable.Count(); i++)
+            {
+                for (int j = 0; j < SymbolsTable[i].Count(); j++)
+                {
+                    if (SymbolsTable[i][j] != null)
+                    {
+                        getMaxNameSize = getMaxNameSize < SymbolsTable[i][j].Name.Length ? SymbolsTable[i][j].Name.Length : getMaxNameSize;
+                        getMaxTypeSize = getMaxTypeSize < SymbolsTable[i][j].Type.Length ? SymbolsTable[i][j].Type.Length : getMaxTypeSize;
+                        getMaxLineSize = getMaxLineSize < SymbolsTable[i][j].StartRow.ToString().Length ? SymbolsTable[i][j].StartRow.ToString().Length : getMaxLineSize;
+                        getMaxColumnSize = getMaxColumnSize < SymbolsTable[i][j].StartColumn.ToString().Length ? SymbolsTable[i][j].StartColumn.ToString().Length : getMaxLineSize;
+                        getMaxColumnSize = getMaxColumnSize < SymbolsTable[i][j].EndColumn.ToString().Length ? SymbolsTable[i][j].EndColumn.ToString().Length : getMaxLineSize;
+                        if (SymbolsTable[i][j].Value != null)
+                        {
+                            getMaxValueSize = getMaxValueSize < SymbolsTable[i][j].Value.ToString().Length ? SymbolsTable[i][j].Value.ToString().Length : getMaxValueSize;
+                        }
+                    }
+                }
+            }
+            //var maxPerRow = getMaxNameSize + getMaxValueSize + getMaxTypeSize + getMaxColumnSize + getMaxLineSize;
+            var consoleColors = Enum.GetValues(typeof(ConsoleColor));
+            var maxChars = new int[] { getMaxNameSize, getMaxValueSize, getMaxTypeSize, getMaxColumnSize, getMaxLineSize };
+            var standardizeColumns = maxChars.Max();
+            var indexForColors = 0;
+            var maxPerRow = standardizeColumns * 5;
+            Console.ForegroundColor = ConsoleColor.White;
+            //Printing headers for symbolsTable
+            for (int i = 0; i < maxPerRow; i++)
+            {
+                if (i == 0)
+                {
+                    Console.Write("|");
+                    outputFile.Write("|");
+                }
+                if (i == standardizeColumns || i + 1 == maxPerRow)
+                {
+                    Console.Write("|");
+                    outputFile.Write("|");
+                    standardizeColumns *= 2;
+                }
+                else
+                {
+                    Console.Write("-");
+                    outputFile.Write("-");
+                }
+            }
+
+            Console.WriteLine();
+            outputFile.WriteLine();
+            var headersVector = new string[] {EnglishVersion? "Name": "Nombre", EnglishVersion ? "type" : "tipo", EnglishVersion ? "value" : "valor/es"
+                , EnglishVersion ? "Row" : "fila", EnglishVersion? "Columns": "Columnas" };
+            for (int i = 0; i < headersVector.Count(); i++)
+            {
+                Console.Write("|  ");
+                Console.Write(headersVector[i]);
+                outputFile.Write("|  ");
+                outputFile.Write(headersVector[i]);
+                for (int j = 0; j < maxChars.Max() - headersVector[i].Length - 2; j++)
+                {
+                    Console.Write(" ");
+                    outputFile.Write(" ");
+                }
+
+            }
+
+            Console.WriteLine();
+            outputFile.WriteLine();
+            for (int i = 0; i < maxPerRow; i++)
+            {
+                if (i == 0)
+                {
+                    Console.Write("|");
+                    outputFile.Write("|");
+                }
+                if (i == standardizeColumns || i + 1 == maxPerRow)
+                {
+                    Console.Write("|");
+                    outputFile.Write("|");
+                    standardizeColumns *= 2;
+                }
+                else
+                {
+                    Console.Write("-");
+                    outputFile.Write("-");
+                }
+            }
+
+            for (int i = 0; i < SymbolsTable.Count(); i++)
+            {
+                ConsoleColor actualColor = new ConsoleColor();
+                foreach (ConsoleColor color in consoleColors)
+                {
+                    actualColor = color;
+                    if (consoleColors.Length <= i)
+                    {
+                        indexForColors = 0;
+                        break;
+                    }
+                    if (indexForColors == i)
+                    {
+                        indexForColors = 0;
+                        break;
+                    }
+                    indexForColors++;
+                }
+                Console.BackgroundColor = actualColor;
+
+                for (int j = 0; j < SymbolsTable[i].Count(); j++)
+                {
+                    Console.WriteLine();
+                    outputFile.WriteLine();
+                    var valueForType = string.Empty;
+                    if (SymbolsTable[i][j].Value != null)
+                    {
+                        valueForType = SymbolsTable[i][j].Value.ToString();
+                    }
+                    else
+                    {
+                        valueForType = "-";
+                    }
+                    var actualValues = new string[] { SymbolsTable[i][j].Name, SymbolsTable[i][j].Type, valueForType
+                        , SymbolsTable[i][j].StartRow.ToString(), SymbolsTable[i][j].StartColumn.ToString() + " - " + SymbolsTable[i][j].EndColumn.ToString()};
+                    for (int k = 0; k < actualValues.Count(); k++)
+                    {
+                        Console.Write("|  ");
+                        outputFile.Write("|  ");
+                        if (actualValues[k] != null)
+                        {
+                            Console.Write(actualValues[k]);
+                            outputFile.Write(actualValues[k]);
+                            for (int h = 0; h < maxChars.Max() - actualValues[k].Length - 2; h++)
+                            {
+                                Console.Write(" ");
+                                outputFile.Write(" ");
+                            }
+                        }
+                        else
+                        {
+                            Console.Write("-");
+                            outputFile.Write("-");
+                            for (int h = 0; h < maxChars.Max() - 3; h++)
+                            {
+                                Console.Write(" ");
+                                outputFile.Write(" ");
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            outputFile.Close();
         }
         bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
             var column = 0;
             var isLexemeValue = true;
-            //consume terminal symbol
-            var headerFound = Helper.ActionsDict.TryGetValue(lexeme.Value, out column);
+            var headerFound = false;
+            if (lexeme.Value == "B" || lexeme.Value == "D" || lexeme.Value == "I" || lexeme.Value == "N" || lexeme.Value == "S")
+            {
+                headerFound = Helper.ActionsDict.TryGetValue(lexeme.Token.ToString(), out column);
+            }
+            else
+            {
+                headerFound = Helper.ActionsDict.TryGetValue(lexeme.Value, out column);
+            }
             if (!headerFound)
             {
                 isLexemeValue = false;
@@ -119,6 +329,13 @@ namespace miniCSharp_Compiler
 
             if (headerFound)
             {
+                if (Lexemes.Count > lexemesIndex + 1)
+                {
+                    if (Lexemes[lexemesIndex + 1].Value == "=")
+                    {
+                        identToAssign = Lexemes[lexemesIndex].Value;
+                    }
+                }
                 var analysisTableIns = getAnalysisTableInstruction(column);
                 if (analysisTableIns.Contains('/'))
                 {
@@ -172,7 +389,7 @@ namespace miniCSharp_Compiler
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            ConflictsStack = new Stack<ConflictNode>();           
+            ConflictsStack = new Stack<ConflictNode>();
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -313,6 +530,13 @@ namespace miniCSharp_Compiler
         }
         void ShiftOrReduce(string analysisTableIns, bool isLexemeValue, LexemeNode lexeme, ref int lexemesIndex)
         {
+            if (FillingExpr)
+            {
+                if (!ExprDict.TryGetValue(lexemesIndex, out string value4))
+                {
+                    ExprDict.Add(lexemesIndex, lexeme.Value);
+                }
+            }
             if (analysisTableIns[0] == 's')
             {
                 var stackTop = string.Empty;
@@ -320,7 +544,447 @@ namespace miniCSharp_Compiler
                 {
                     stackTop = ConsumedSymbols.Peek();
                 }
-                if (lexeme.Value == ";" || lexeme.Value == ")")
+                if (ConsumedSymbols.Count > 1 && lexeme.Value == "(")
+                {
+                    var tryIdentSymbol = ConsumedSymbols.Pop();
+                    if (tryIdentSymbol == "I" && (ConsumedSymbols.Peek() == "." || ConsumedSymbols.Peek() == "Stmt"))//|| tryIdentSymbol == ";" REVISAR SI PUEDEN SER MÁS CASOS DE tryIdentSymbol*********************************************************************************************
+                    {
+                        FillingCallStmtParams = true;
+                        var tempIndex = lexemesIndex;
+                        var usingAccesor = false;
+                        if (ConsumedSymbols.Peek() == ".")
+                        {
+                            usingAccesor = true;
+                        }
+
+                        //buscar accesor y nombre del metodo
+                        for (int i = tempIndex; i > 0; i--)
+                        {
+                            if (Lexemes[i].Token == 'I')//se encontró el nombre del método
+                            {
+                                if (MethodNameToCall == string.Empty)
+                                {
+                                    MethodNameToCall = Lexemes[i].Value;
+                                    if (!usingAccesor)
+                                    {
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    AccesorObjectToMethodCall = Lexemes[i].Value;
+                                    break;
+                                }
+                            }
+                        }
+
+                    }
+                    ConsumedSymbols.Push(tryIdentSymbol);
+                }
+                else if (FillingCallStmtParams && lexeme.Value == ")")
+                {
+                    //buscar el método, validar el accesor
+                    //hacer match
+                    dynamic accesorNode;
+                    if (AccesorObjectToMethodCall != string.Empty)
+                    {
+                        accesorNode = getVariableFromSymbolsTable(AccesorObjectToMethodCall);
+                    }
+                    else
+                    {
+                        accesorNode = string.Empty;
+                    }
+
+                    if (accesorNode != null)
+                    {
+                        var methodNode = getVariableFromSymbolsTable(MethodNameToCall);
+                        if (methodNode != null)
+                        {
+                            if (methodNode.IsActive)
+                            {
+                                var CallStmtParametersQty = 0;
+                                foreach (var item in CallStmtParameters)
+                                {
+                                    if (item.Value == "," || item.Key == CallStmtParameters.Keys.Last())
+                                    {
+                                        CallStmtParametersQty++;
+                                    }
+                                }
+                                if (CallStmtParametersQty == methodNode.Parameters.Count)
+                                {
+                                    var nodeParamsIndex = 0;
+                                    var insToValidate = string.Empty;
+                                    foreach (var item in CallStmtParameters)
+                                    {
+                                        if (item.Value == "," || item.Key == CallStmtParameters.Keys.Last())
+                                        {
+
+                                            insToValidate += item.Key == CallStmtParameters.Keys.Last() ? item.Value : string.Empty;
+                                            var possibleId = getVariableFromSymbolsTable(insToValidate);
+                                            if (possibleId == null)
+                                            {
+                                                var resultType = ProcessExprGetType(insToValidate);
+                                                if (resultType != "notValidOp")
+                                                {
+                                                    var paramsIndex = 0;
+                                                    foreach (var param in methodNode.Parameters)
+                                                    {
+                                                        if (paramsIndex == nodeParamsIndex)
+                                                        {
+                                                            if (param.Value != resultType)
+                                                            {
+                                                                if (param.Value == "double" && resultType == "int")
+                                                                {
+                                                                    //should cast
+                                                                    break;
+                                                                }
+                                                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                                var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                                var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                    + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                            }
+                                                            break;
+                                                        }
+                                                        paramsIndex++;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (insToValidate.Contains("\""))
+                                                    {
+                                                        var paramsIndex = 0;
+                                                        foreach (var param in methodNode.Parameters)
+                                                        {
+                                                            if (paramsIndex == nodeParamsIndex)
+                                                            {
+                                                                if (param.Value != "string")
+                                                                {
+                                                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                                    var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                                    var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                        + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                                }
+                                                                break;
+                                                            }
+                                                            paramsIndex++;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                        var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                        var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                        SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                            + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage);
+                                                    }
+                                                    //operacion invalida en envio de parametro
+                                                }
+                                            }
+                                            else
+                                            {
+                                                //AQUI ES CONTRA possibleId.Type
+                                                var paramsIndex = 0;
+                                                foreach (var param in methodNode.Parameters)
+                                                {
+                                                    if (paramsIndex == nodeParamsIndex)
+                                                    {
+                                                        if (param.Value != possibleId.Type)
+                                                        {
+                                                            if (param.Value == "double" && possibleId.Type == "int")
+                                                            {
+                                                                //should cast
+                                                                break;
+                                                            }
+                                                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                            var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                                            var errorMessage = EnglishVersion ? " sent type with incompatible error type in" : " no envio parametros con el correcto tipo de dato ";
+                                                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                                + lexeme.EndColumn + " **ERROR** " + insToValidate + " " + MethodNameToCall + " \"" + errorMessage + " expected " + param.Value);
+                                                        }
+                                                        break;
+                                                    }
+                                                    paramsIndex++;
+                                                }
+                                            }
+                                            //ProcessExprGetType                                               
+                                            nodeParamsIndex++;
+                                            insToValidate = string.Empty;
+                                        }
+                                        else
+                                        {
+                                            insToValidate += item.Value;
+                                        }
+                                        //determinar si es algun tipo de id, si sí validar contra el recuperado, sino contra el tipo
+                                        //que me arroje producir expr
+
+                                    }
+                                }
+                                else
+                                {
+                                    //no se envio la cantidad de argumentos suficientes
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this method or function call: \" " : " la llamada  a la función o metodo: \" ";
+                                    var errorMessage = EnglishVersion ? " didn't send enough parameters" : " no envio parametros suficientes ";
+                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                        + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage + " expected " + methodNode.Parameters.Count);
+                                }
+                            }
+                            else
+                            {
+                                //el método tiene problemas en su declaración
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this method or function: \" " : " la función o metodo: \" ";
+                                var errorMessage = EnglishVersion ? " has problems in its declaration" : " tiene problemas en su declaración ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage);
+                            }
+                        }
+                        else
+                        {
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this method or function: \" " : " la función o metodo: \" ";
+                            var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creado en ningun ambito abierto ";
+                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                + lexeme.EndColumn + " **ERROR** " + identifier + " " + MethodNameToCall + " \"" + errorMessage);
+                        }
+                    }
+                    else
+                    {
+                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                        var identifier = EnglishVersion ? " this accesor object: \" " : " el objeto accesor: \" ";
+                        var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creado en ningun ambito abierto ";
+                        SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                            + lexeme.EndColumn + " **ERROR** " + identifier + " " + AccesorObjectToMethodCall + " \"" + errorMessage);
+                    }
+
+
+
+
+
+                    CallStmtParameters = new Dictionary<int, string>();
+                    MethodNameToCall = string.Empty;
+                    AccesorObjectToMethodCall = string.Empty;
+                    FillingCallStmtParams = false;
+                }
+                else if (FillingCallStmtParams)
+                {
+                    if (!CallStmtParameters.TryGetValue(lexemesIndex, out string val))
+                    {
+
+                        CallStmtParameters.Add(lexemesIndex, lexeme.Value);
+
+                    }
+                }
+                if (stackTop == "=")
+                {
+                    FillingExpr = true;
+                    if (!ExprDict.TryGetValue(lexemesIndex, out string value4))
+                    {
+                        ExprDict.Add(lexemesIndex, lexeme.Value);
+                    }
+                }
+                else if (FillingExpr && lexeme.Value == ";")//(|| lexeme.Value == ")" || lexeme.Value == "}")
+                {
+                    FillingExpr = false;
+                    var temp = string.Empty;
+                    var identProblemFound = false;
+                    foreach (var item in ExprDict)
+                    {
+                        if (Lexemes[item.Key].Token == 'I')
+                        {
+                            var symbol = getVariableFromSymbolsTable(item.Value);
+                            if (symbol != null)
+                            {
+                                if (symbol.Value != null)
+                                {
+                                    temp += symbol.Value + " ";
+                                }
+                                else
+                                {
+                                    identProblemFound = true;
+                                    //variable no inicializada
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                                    var errorMessage = EnglishVersion ? " is not initialized " : " no esta inicializado ";
+                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                        + lexeme.EndColumn + " **ERROR** " + identifier + item.Value + " \"" + errorMessage);
+                                }
+                            }
+                            else
+                            {
+                                identProblemFound = true;
+                                //variable no encontrada
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this variable: \" " : " la variable: \" ";
+                                var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creada en ningun ambito abierto ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + item.Value + " \"" + errorMessage);
+                            }
+                            //buscar variable en tabla de símbolos
+                        }
+                        else
+                        {
+                            if (item.Value != ";")
+                            {
+                                temp += item.Value + " ";
+                            }
+                        }
+                    }
+                    if (!identProblemFound)
+                    {
+                        var symbol = getVariableFromSymbolsTable(identToAssign);
+                        if (symbol != null)
+                        {
+                            var value = ProcessExpr(temp);
+                            if (value != null)
+                            {
+                                for (int i = 0; i < SymbolsTable[symbol.Scope].Count; i++)
+                                {
+                                    if (SymbolsTable[symbol.Scope][i].Name == symbol.Name)
+                                    {
+                                        var tempType = value.GetType().Name;
+                                        switch (value.GetType().Name)
+                                        {
+                                            case "Int32":
+                                                tempType = "int";
+                                                break;
+                                            case "Int16":
+                                                tempType = "int";
+                                                break;
+                                            case "Int64":
+                                                tempType = "int";
+                                                break;
+                                            case "Boolean":
+                                                tempType = "bool";
+                                                break;
+                                            case "Double":
+                                                tempType = "double";
+                                                break;
+                                            default:
+                                                tempType = "string";
+                                                break;
+                                        }
+
+                                        if (SymbolsTable[symbol.Scope][i].Type == string.Empty)
+                                        {
+                                            SymbolsTable[symbol.Scope][i].Type = tempType;
+                                            SymbolsTable[symbol.Scope][i].Value = value;
+                                        }
+                                        else
+                                        {
+                                            if (SymbolsTable[symbol.Scope][i].Type == tempType)
+                                            {
+                                                SymbolsTable[symbol.Scope][i].Value = value;
+                                            }
+                                            else
+                                            {
+                                                //error, se está tratando de guardar un tipo de dato diferente en un nodo con dato ya definido
+                                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                var identifier = EnglishVersion ? " this assign to the identifier: \" " : " la asignacion para el identificador: \" ";
+                                                var errorMessage = EnglishVersion ? " does not match with the data type that is traying to assign " : " no tiene el mismo tipo de dato que el valor con que se esta haciendo la operacion ";
+                                                var destinationIdent = SymbolsTable[symbol.Scope][i];
+                                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                    + lexeme.EndColumn + " **ERROR** " + identifier + destinationIdent.Name + " \"" + errorMessage);
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //error en los tipos de dato
+                                //--------------------------------------------------------------------------------------
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                                var errorMessage = EnglishVersion ? " is not initialized " : " no esta inicializado ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + symbol.Name + " \"" + errorMessage);
+
+                            }
+                        }
+                        else
+                        {
+                            //se está tratando de asignar a una variable no accesible desde el ámbito actual
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this variable: \" " : " la variable: \" ";
+                            var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creada en ningun ambito abierto ";
+                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                + lexeme.EndColumn + " **ERROR** " + identifier + identToAssign + " \"" + errorMessage);
+
+                        }
+                        //procesar EXPR
+                    }
+                    ExprDict = new Dictionary<int, string>();
+                }
+                else if ((stackTop == ":" || stackTop == ",") && FillingClassInheritance && lexeme.Token == 'I')
+                {
+                    if (DataTypesFound.TryGetValue(lexeme.Value, out char value))
+                    {
+                        if (!SymbolsTable[0][SymbolsTable[0].Count - 1].Parameters.TryGetValue(lexeme.Value, out string value3))
+                        {
+                            SymbolsTable[0][SymbolsTable[0].Count - 1].Parameters.Add(lexeme.Value, "inheritance");
+                        }
+                        else
+                        {
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " the class \" " : " la clase \" ";
+                            var errorMessage = EnglishVersion ? " previously inherited by: " : " ya heredo anteriormente por: ";
+                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + SymbolsTable[0][SymbolsTable[0].Count - 1].Name + " \"" + errorMessage + lexeme.Value);
+                            //herencia repetida
+                            ErrorInInheritance = true;
+                        }
+                    }
+                    else
+                    {
+                        //tipo de dato para herencia no encontrado
+                        var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                        var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                        var endColumn = EnglishVersion ? " to " : " hasta ";
+                        var identifier = EnglishVersion ? " the class \" " : " la clase \" ";
+                        var errorMessage = EnglishVersion ? " doesn't exist" : " no existe";
+                        SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                + lexeme.EndColumn + " **ERROR** " + identifier + lexeme.Value + " \"" + errorMessage);
+                        ErrorInInheritance = true;
+                    }
+                    if (ErrorInInheritance)
+                    {
+                        SymbolsTable[0][SymbolsTable[0].Count - 1].IsActive = false;
+                    }
+
+                }
+                else if (lexeme.Value == ";" || lexeme.Value == ")")
                 {
                     if (TempNodeForSymbolsTable.StartRow != 0)
                     {
@@ -328,10 +992,15 @@ namespace miniCSharp_Compiler
                         //we're filling an ident
                         if (!DataTypesFound.TryGetValue(TempNodeForSymbolsTable.Name, out char value))
                         {
-                          
+
                             if (validateIdentDeclInScope(TempNodeForSymbolsTable))
                             {
-                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);                        
+                                if (ErrorInParameters)
+                                {
+                                    TempNodeForSymbolsTable.IsActive = false;
+                                    ErrorInParameters = false;
+                                }
+                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);
                             }
                             else
                             {
@@ -391,25 +1060,27 @@ namespace miniCSharp_Compiler
                             }
                             SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
                                 + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
-   
+
                         }
                         TempNodeForSymbolsTable = new SymbolNode();
-                        FillingParameters = false;                        
+                        FillingParameters = false;
                     }
                     //revisar si sí aquí debería añadirse el nodo
                 }
                 else if (lexeme.Token == 'I' && stackTop == "class")
-                {                                        
+                {
                     TempNodeForSymbolsTable.Name = lexeme.Value;
                     TempNodeForSymbolsTable.Scope = OpenScopes.Peek();
                     TempNodeForSymbolsTable.StartColumn = lexeme.StartColumn;
                     TempNodeForSymbolsTable.EndColumn = lexeme.EndColumn;
                     TempNodeForSymbolsTable.StartRow = lexeme.StartRow;
                     TempNodeForSymbolsTable.Type = stackTop;
+                    TempNodeForSymbolsTable.InitParameters();
                     if (validateIdentDeclInScope(TempNodeForSymbolsTable) && !DataTypesFound.TryGetValue(lexeme.Value, out char value))
                     {
                         DataTypesFound.Add(lexeme.Value, ' ');
                         SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);
+                        FillingClassInheritance = true;
                     }
                     else
                     {
@@ -423,8 +1094,8 @@ namespace miniCSharp_Compiler
                             + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
                     }
                     TempNodeForSymbolsTable = new SymbolNode();
-                    
-                    
+
+
                 }
                 else if (lexeme.Token == 'I' && (stackTop == "Type" || stackTop == "ConstType" || stackTop == "void" || stackTop == "interface"))
                 {
@@ -449,7 +1120,18 @@ namespace miniCSharp_Compiler
                         if (validateIdentDeclInScope(tempParameter))
                         {
                             if (!DataTypesFound.TryGetValue(tempParameter.Name, out char value))
-                            {                                
+                            {
+                                if (ActualDataType == "NF")//not found datatype in reduction by ID
+                                {
+                                    TempNodeForSymbolsTable.IsActive = false;
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this parameter: \" " : " el parametro: \" ";
+                                    var errorMessage = EnglishVersion ? " makes reference to a non existing data type " : " hace referencia a un tipo de dato inexistente";
+                                    SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
+                                        + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
+                                }
                                 TempNodeForSymbolsTable.Parameters.Add(tempParameter.Name, tempParameter.Type);
                                 SymbolsTable[tempParameter.Scope].Add(tempParameter);
                             }
@@ -461,6 +1143,7 @@ namespace miniCSharp_Compiler
                                 var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
                                 var errorMessage = EnglishVersion ? " is already defined as a data type" : " ya esta definido como un tipo de dato";
                                 TempNodeForSymbolsTable.IsActive = false;
+                                ErrorInParameters = true;
                                 SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
                                     + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
                             }
@@ -469,10 +1152,11 @@ namespace miniCSharp_Compiler
                         {
                             var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
                             var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
-                            var endColumn = EnglishVersion ? " to " : " hasta ";                            
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
                             var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
                             var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
                             TempNodeForSymbolsTable.IsActive = false;
+                            ErrorInParameters = true;
                             SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
                                 + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
                         }
@@ -484,7 +1168,7 @@ namespace miniCSharp_Compiler
                     if (ConsumedSymbols.Count > 1)
                     {
                         var tryIdentSymbol = ConsumedSymbols.Pop();
-                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void" ) && tryIdentSymbol == "I")
+                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void") && tryIdentSymbol == "I")
                         {
                             ScopesIndex++;
                             OpenScopes.Push(ScopesIndex);
@@ -497,6 +1181,18 @@ namespace miniCSharp_Compiler
                 }
                 else if (lexeme.Value == "{")
                 {
+                    FillingClassInheritance = false;
+                    if (ErrorInInheritance)
+                    {
+                        //delete datatype
+                        var className = SymbolsTable[0][SymbolsTable[0].Count - 1].Name;
+                        if (DataTypesFound.TryGetValue(className, out char value0))
+                        {
+                            DataTypesFound.Remove(className);
+                        }
+                    }
+                    ErrorInInheritance = false;
+
                     if (ConsumedSymbols.Peek() != ")")
                     {
                         if (TempNodeForSymbolsTable.Type == "interface")
@@ -524,8 +1220,8 @@ namespace miniCSharp_Compiler
                 }
                 else if (lexeme.Value == "}")
                 {
-                    if (ScopesIndex > 0 && OpenScopes.Count > 0)
-                    {                        
+                    if (OpenScopes.Count > 1)
+                    {
                         OpenScopes.Pop();
                     }
                     else
@@ -533,8 +1229,9 @@ namespace miniCSharp_Compiler
                         //error??
                     }
 
-                    
+
                 }
+
                 if (lexeme.Token == 'I')
                 {
                     LastIdentValue = lexeme.Value;
@@ -558,9 +1255,27 @@ namespace miniCSharp_Compiler
                     }
                     else
                     {
-                        //Erorr trying to define variable with non existing data type
+                        if (FillingClassInheritance)
+                        {
+                            ActualDataType = "NF";
+                            //imprimir error que en la herencia no se encontró el tipo de dato
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                            var errorMessage = EnglishVersion ? " has an invalid data type " : " se esta intentando crear con un tipo de dato que no existe";
+                            SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                                + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+                        }
+                        else if (FillingParameters)
+                        {
+                            ActualDataType = "NF";
+                        }
+
+
                     }
                 }
+
                 reduceBy(analysisTableIns);
                 headerFound = Helper.GotoDict.TryGetValue(ConsumedSymbols.Peek(), out column);
                 if (headerFound)
@@ -582,9 +1297,10 @@ namespace miniCSharp_Compiler
                 }
             }
         }
-        bool validateIdentDeclInScope (SymbolNode actualIdent)
+        bool validateIdentDeclInScope(SymbolNode actualIdent)
         {
-            if (SymbolsTable[actualIdent.Scope].Count != 0 )
+
+            if (SymbolsTable[actualIdent.Scope].Count != 0)
             {
                 foreach (var symbol in SymbolsTable[actualIdent.Scope])
                 {
@@ -595,6 +1311,8 @@ namespace miniCSharp_Compiler
                 }
             }
             return true;
+
+
         }
         string getAnalysisTableInstruction(int column)
         {
@@ -639,13 +1357,132 @@ namespace miniCSharp_Compiler
 
             ConsumedSymbols.Push(productionName);
         }
-        void  initializeSymbolsTable(List<SymbolNode> symbolsTable) 
-        { 
+        void initializeSymbolsTable(List<SymbolNode> symbolsTable)
+        {
             SymbolsTable = new Dictionary<int, List<SymbolNode>>();
             SymbolsTable.Add(0, new List<SymbolNode>());
             for (int i = 0; i < symbolsTable.Count; i++)
             {
                 symbolsTable[i] = symbolsTable[i];
+            }
+        }
+
+        SymbolNode getVariableFromSymbolsTable(string name)
+        {
+            var auxStack = new Stack<int>(OpenScopes);
+
+            while (OpenScopes.Count > 0)
+            {
+                foreach (var item in SymbolsTable[OpenScopes.Peek()])
+                {
+                    if (item.Name == name)
+                    {
+                        OpenScopes = new Stack<int>(auxStack);
+                        return item;
+                    }
+                }
+                OpenScopes.Pop();
+            }
+
+            OpenScopes = new Stack<int>(auxStack);
+            return null;
+        }
+
+        dynamic ProcessExpr(string expr)
+        {
+            if (expr.Contains("True"))
+            {
+                string pattern = @"\bTrue\b";
+                string replace = "true";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            if (expr.Contains("False"))
+            {
+                string pattern = @"\bFalse\b";
+                string replace = "false";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            dynamic result;
+            try
+            {
+                result = Eval.Execute<dynamic>(expr);//validar /0
+                if (result.GetType().Name != "string")
+                {
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+                else
+                {
+                    //división entre 0
+                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                    var identifier = EnglishVersion ? " this operations cannot be done: \" " : " esta operacion no puede hacerse: \" ";
+                    var errorMessage = EnglishVersion ? " you can't divide by zero " : " se esta intentando no se sabe quien reinicio";
+                    SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                        + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+
+                }
+            }
+            catch (Exception)
+            {
+                if (expr.Contains("+"))
+                {
+                    var splitExpr = expr.Split('+');
+                    var outPutString = string.Empty;
+                    for (int i = 0; i < splitExpr.Length; i++)
+                    {
+                        outPutString += splitExpr[i];
+                    }
+                    return outPutString;
+                }
+                //else sería algún tipo de error porque no se pudo operar la entrada,
+                //maybe en los tipos de dato
+            }
+            return null;
+        }
+
+
+        dynamic ProcessExprGetType(string expr)
+        {
+            if (expr.Contains("True"))
+            {
+                string pattern = @"\bTrue\b";
+                string replace = "true";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            if (expr.Contains("False"))
+            {
+                string pattern = @"\bFalse\b";
+                string replace = "false";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            dynamic result;
+            try
+            {
+                result = Eval.Execute<dynamic>(expr);//validar /0
+
+                switch (result.GetType().Name)
+                {
+                    case "Int32":
+                        return "int";
+                    case "Int16":
+                        return "int";
+                    case "Int64":
+                        return "int";
+                    case "Boolean":
+                        return "bool";
+                    case "Double":
+                        return "double";
+                    default:
+                        return "notValidOp";
+                }
+            }
+            catch (Exception)
+            {
+                return "notValidOp";
             }
         }
     }
