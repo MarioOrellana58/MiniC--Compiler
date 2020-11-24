@@ -5,6 +5,7 @@ using Z.Expressions;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace miniCSharp_Compiler
 {
@@ -33,6 +34,9 @@ namespace miniCSharp_Compiler
         public Dictionary<int, string> ExprDict { get; set; }
         public List<LexemeNode> Lexemes { get; set; }
         public string identToAssign { get; set; }
+        public bool ErrorInInheritance { get; set; }
+        public bool ErrorInParameters { get; set; }
+        //public List<string> CallStmtParameters { get; set; }
         public SyntaxAnalyzer(bool englishVersion)
         {
             StatusStack = new Stack<int>();
@@ -51,6 +55,7 @@ namespace miniCSharp_Compiler
             LastIdentValue = string.Empty;
             FillingParameters = false;
             FillingClassInheritance = false;
+            ErrorInInheritance = false;
             FillingExpr = false;
             ExprDict = new Dictionary<int, string>();
             identToAssign = string.Empty;
@@ -111,17 +116,15 @@ namespace miniCSharp_Compiler
         {
             var column = 0;
             var isLexemeValue = true;
-            //var headerFound = false;
-            //consume terminal symbol
-            var headerFound = Helper.ActionsDict.TryGetValue(lexeme.Value, out column);
-            //if (lexeme.Token == 'I')
-            //{
-            //    headerFound = Helper.ActionsDict.TryGetValue(lexeme.Token.ToString(), out column);
-            //}
-            //else
-            //{
-            //    headerFound = Helper.ActionsDict.TryGetValue(lexeme.Value, out column);
-            //}
+            var headerFound = false;
+            if (lexeme.Value == "B" || lexeme.Value == "D" || lexeme.Value == "I" || lexeme.Value == "N" || lexeme.Value == "S" )
+            {
+                headerFound = Helper.ActionsDict.TryGetValue(lexeme.Token.ToString(), out column);
+            }
+            else
+            {
+                headerFound = Helper.ActionsDict.TryGetValue(lexeme.Value, out column);
+            }
             if (!headerFound)
             {
                 isLexemeValue = false;
@@ -362,7 +365,7 @@ namespace miniCSharp_Compiler
                         ExprDict.Add(lexemesIndex, lexeme.Value);
                     }
                 }
-                else if (FillingExpr && (lexeme.Value == ";" || lexeme.Value == ")" || lexeme.Value == "}"))
+                else if (FillingExpr && lexeme.Value == ";")//(|| lexeme.Value == ")" || lexeme.Value == "}")
                 {
                     FillingExpr = false;
                     var temp = string.Empty;
@@ -411,8 +414,7 @@ namespace miniCSharp_Compiler
                                 {
                                     if (SymbolsTable[symbol.Scope][i].Name == symbol.Name)
                                     {
-                                        var tempType = value.GetType().Name;
-                                        SymbolsTable[symbol.Scope][i].Value = value;
+                                        var tempType = value.GetType().Name;                                        
                                         switch (value.GetType().Name)
                                         {
                                             case "Int32":
@@ -435,7 +437,24 @@ namespace miniCSharp_Compiler
                                                 tempType = "string";
                                                 break;
                                         }
-                                        SymbolsTable[symbol.Scope][i].Type = tempType;
+
+                                        if (SymbolsTable[symbol.Scope][i].Type == string.Empty)
+                                        {
+                                            SymbolsTable[symbol.Scope][i].Type = tempType;
+                                            SymbolsTable[symbol.Scope][i].Value = value;
+                                        }
+                                        else
+                                        {
+                                            if (SymbolsTable[symbol.Scope][i].Type == tempType)
+                                            {
+                                                SymbolsTable[symbol.Scope][i].Value = value;
+                                            }
+                                            else
+                                            {
+                                                //error, se está tratando de guardar un tipo de dato diferente en un nodo con dato ya definido
+
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -475,6 +494,7 @@ namespace miniCSharp_Compiler
                             SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
                                     + lexeme.EndColumn + " **ERROR** " + identifier + SymbolsTable[0][SymbolsTable[0].Count - 1].Name + " \"" + errorMessage + lexeme.Value);
                             //herencia repetida
+                            ErrorInInheritance = true;
                         }
                     }
                     else
@@ -487,6 +507,11 @@ namespace miniCSharp_Compiler
                         var errorMessage = EnglishVersion ? " doesn't exist" : " no existe";
                         SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
                                 + lexeme.EndColumn + " **ERROR** " + identifier + lexeme.Value + " \"" + errorMessage);
+                        ErrorInInheritance = true;                        
+                    }
+                    if (ErrorInInheritance)
+                    {
+                        SymbolsTable[0][SymbolsTable[0].Count - 1].IsActive = false;
                     }
 
                 }
@@ -501,6 +526,11 @@ namespace miniCSharp_Compiler
                           
                             if (validateIdentDeclInScope(TempNodeForSymbolsTable))
                             {
+                                if (ErrorInParameters)
+                                {
+                                    TempNodeForSymbolsTable.IsActive = false;
+                                    ErrorInParameters = false;
+                                }
                                 SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);                        
                             }
                             else
@@ -621,7 +651,11 @@ namespace miniCSharp_Compiler
                         if (validateIdentDeclInScope(tempParameter))
                         {
                             if (!DataTypesFound.TryGetValue(tempParameter.Name, out char value))
-                            {                                
+                            {
+                                if (ActualDataType == "NF")//not found datatype in reduction by ID
+                                {
+                                    TempNodeForSymbolsTable.IsActive = false;
+                                }
                                 TempNodeForSymbolsTable.Parameters.Add(tempParameter.Name, tempParameter.Type);
                                 SymbolsTable[tempParameter.Scope].Add(tempParameter);
                             }
@@ -633,6 +667,7 @@ namespace miniCSharp_Compiler
                                 var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
                                 var errorMessage = EnglishVersion ? " is already defined as a data type" : " ya esta definido como un tipo de dato";
                                 TempNodeForSymbolsTable.IsActive = false;
+                                ErrorInParameters = true;
                                 SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
                                     + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
                             }
@@ -645,6 +680,7 @@ namespace miniCSharp_Compiler
                             var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
                             var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
                             TempNodeForSymbolsTable.IsActive = false;
+                            ErrorInParameters = true;
                             SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
                                 + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
                         }
@@ -669,7 +705,18 @@ namespace miniCSharp_Compiler
                 }
                 else if (lexeme.Value == "{")
                 {
-                    FillingClassInheritance = false;                    
+                    FillingClassInheritance = false;
+                    if (ErrorInInheritance)
+                    {
+                        //delete datatype
+                        var className = SymbolsTable[0][SymbolsTable[0].Count - 1].Name;
+                        if (DataTypesFound.TryGetValue(className, out char value0))
+                        {
+                            DataTypesFound.Remove(className);
+                        }
+                    }
+                    ErrorInInheritance = false;
+
                     if (ConsumedSymbols.Peek() != ")")
                     {
                         if (TempNodeForSymbolsTable.Type == "interface")
@@ -715,19 +762,7 @@ namespace miniCSharp_Compiler
                 shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
             }
             else if (analysisTableIns[0] == 'r')
-            {
-               
-                //if (FillingExpr && lexeme.Value == ";")
-                //{
-                //    FillingExpr = false;
-                //}
-                //if (FillingExpr)
-                //{
-                //    if (!ExprDict.TryGetValue(lexemesIndex, out string value4))
-                //    {
-                //        ExprDict.Add(lexemesIndex, lexeme.Value);
-                //    }
-                //}
+            {               
                 var column = 0;
                 var headerFound = false;
                 if (analysisTableIns == "r16" || analysisTableIns == "r17" || analysisTableIns == "r18" || analysisTableIns == "r19"
@@ -743,7 +778,18 @@ namespace miniCSharp_Compiler
                     }
                     else
                     {
+                        if (FillingClassInheritance)
+                        {
+                            ActualDataType = "NF";
+                            //imprimir error que en la herencia no se encontró el tipo de dato
+                        }
+                        else if (FillingParameters)
+                        {
+                            ActualDataType = "NF";
+                            //imprimir error que en la def de params no se encontró el tipo de dato
+                        }
                         //Erorr trying to define variable with non existing data type
+                        //puede ser también una asignación, revisar esto
                     }
                 }
                 reduceBy(analysisTableIns);
@@ -860,6 +906,18 @@ namespace miniCSharp_Compiler
 
         dynamic ProcessExpr(string expr)
         {
+            if (expr.Contains("True"))
+            {
+                string pattern = @"\bTrue\b";
+                string replace = "true";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
+            if (expr.Contains("False"))
+            {
+                string pattern = @"\bFalse\b";
+                string replace = "false";
+                expr = Regex.Replace(expr, pattern, replace);
+            }
             dynamic result;
             try
             {
@@ -878,7 +936,18 @@ namespace miniCSharp_Compiler
             }
             catch (Exception)
             {
-
+                if (expr.Contains("+"))
+                {
+                    var splitExpr = expr.Split('+');
+                    var outPutString = string.Empty;
+                    for (int i = 0; i < splitExpr.Length; i++)
+                    {
+                        outPutString += splitExpr[i];
+                    }
+                    return outPutString;
+                }
+                //else sería algún tipo de error porque no se pudo operar la entrada,
+                //maybe en los tipos de dato
             }
             return null;
         }
