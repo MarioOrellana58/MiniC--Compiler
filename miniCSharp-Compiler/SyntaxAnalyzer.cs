@@ -20,8 +20,8 @@ namespace miniCSharp_Compiler
         LexemeNode MaxReceived { get; set; }
         public bool IsSyntacticallyCorrect { get; set; }
         public bool EnglishVersion { get; set; }
-        public Dictionary<int,List<SymbolNode>> SymbolsTable { get; set; }          
-        public Dictionary<string, char> DataTypesFound { get; set; }                   
+        public Dictionary<int, List<SymbolNode>> SymbolsTable { get; set; }
+        public Dictionary<string, char> DataTypesFound { get; set; }
         public Stack<int> OpenScopes { get; set; }
         public int ScopesIndex { get; set; }
         public string ActualDataType { get; set; }
@@ -68,7 +68,7 @@ namespace miniCSharp_Compiler
             DataTypesFound.Add("bool", ' ');
             DataTypesFound.Add("string", ' ');
             DataTypesFound.Add("void", ' ');
-            DataTypesFound.Add("interface", ' ');            
+            DataTypesFound.Add("interface", ' ');
         }
 
         public void AnalyzeLexemesSyntax(List<LexemeNode> lexemes, List<SymbolNode> symbolsTable)
@@ -101,7 +101,7 @@ namespace miniCSharp_Compiler
                 }
             }
 
-            
+
             if (IsSyntacticallyCorrect)
             {
                 Console.WriteLine(EnglishVersion ? "Your file is lexically correct :D" : "El archivo es lexicamente correcto :D");
@@ -110,14 +110,34 @@ namespace miniCSharp_Compiler
                 {
                     Console.WriteLine(EnglishVersion ? "Your file is semantically correct :D" : "El archivo es semanticamente correcto :D");
                 }
+                else
+                {
+                    PrintSemanticErrors();
+                }
+                PrintSymbolsTable();
             }
+        }
+        void PrintSemanticErrors()
+        {
+            for (int i = 0; i < SemanticErrors.Count; i++)
+            {
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Red;
+
+                Console.WriteLine(SemanticErrors[i]);
+                Console.WriteLine("\n");
+            }
+        }
+        void PrintSymbolsTable()
+        {
+
         }
         bool ParseLexemes(LexemeNode lexeme, ref int lexemesIndex)
         {
             var column = 0;
             var isLexemeValue = true;
             var headerFound = false;
-            if (lexeme.Value == "B" || lexeme.Value == "D" || lexeme.Value == "I" || lexeme.Value == "N" || lexeme.Value == "S" )
+            if (lexeme.Value == "B" || lexeme.Value == "D" || lexeme.Value == "I" || lexeme.Value == "N" || lexeme.Value == "S")
             {
                 headerFound = Helper.ActionsDict.TryGetValue(lexeme.Token.ToString(), out column);
             }
@@ -202,7 +222,7 @@ namespace miniCSharp_Compiler
             ConsumedSymbols = new Stack<string>();
             MaxReceived = new LexemeNode();
             MaxExpected = new List<string>();
-            ConflictsStack = new Stack<ConflictNode>();           
+            ConflictsStack = new Stack<ConflictNode>();
             StatusStack.Push(0);
         }
         void RestoreStatus(ref int lexemesIndex, bool isLexemeValue, LexemeNode lexeme)
@@ -385,12 +405,26 @@ namespace miniCSharp_Compiler
                                 {
                                     identProblemFound = true;
                                     //variable no inicializada
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                                    var errorMessage = EnglishVersion ? " is not initialized " : " no esta inicializado ";
+                                    SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                        + lexeme.EndColumn + " **ERROR** " + identifier + item.Value + " \"" + errorMessage);
                                 }
                             }
                             else
                             {
                                 identProblemFound = true;
                                 //variable no encontrada
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this variable: \" " : " la variable: \" ";
+                                var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creada en ningun ambito abierto ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + item.Value + " \"" + errorMessage);
                             }
                             //buscar variable en tabla de símbolos
                         }
@@ -414,7 +448,7 @@ namespace miniCSharp_Compiler
                                 {
                                     if (SymbolsTable[symbol.Scope][i].Name == symbol.Name)
                                     {
-                                        var tempType = value.GetType().Name;                                        
+                                        var tempType = value.GetType().Name;
                                         switch (value.GetType().Name)
                                         {
                                             case "Int32":
@@ -432,7 +466,6 @@ namespace miniCSharp_Compiler
                                             case "Double":
                                                 tempType = "double";
                                                 break;
-                                            //añadir más casos
                                             default:
                                                 tempType = "string";
                                                 break;
@@ -452,6 +485,14 @@ namespace miniCSharp_Compiler
                                             else
                                             {
                                                 //error, se está tratando de guardar un tipo de dato diferente en un nodo con dato ya definido
+                                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                                var identifier = EnglishVersion ? " this assign to the identifier: \" " : " la asignacion para el identificador: \" ";
+                                                var errorMessage = EnglishVersion ? " does not match with the data type that is traying to assign " : " no tiene el mismo tipo de dato que el valor con que se esta haciendo la operacion ";
+                                                var destinationIdent = SymbolsTable[symbol.Scope][i];
+                                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                                    + lexeme.EndColumn + " **ERROR** " + identifier + destinationIdent.Name + " \"" + errorMessage);
 
                                             }
                                         }
@@ -461,28 +502,54 @@ namespace miniCSharp_Compiler
                             else
                             {
                                 //error en los tipos de dato
+                                //--------------------------------------------------------------------------------------
+                                var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                var endColumn = EnglishVersion ? " to " : " hasta ";
+                                var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                                var errorMessage = EnglishVersion ? " is not initialized " : " no esta inicializado ";
+                                SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                    + lexeme.EndColumn + " **ERROR** " + identifier + symbol.Name + " \"" + errorMessage);
+
                             }
                         }
                         else
                         {
                             //se está tratando de asignar a una variable no accesible desde el ámbito actual
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this variable: \" " : " la variable: \" ";
+                            var errorMessage = EnglishVersion ? " is not created in any open scopes " : " no esta creada en ningun ambito abierto ";
+                            SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                + lexeme.EndColumn + " **ERROR** " + identifier + identToAssign + " \"" + errorMessage);
+
                         }
                         //procesar EXPR
                     }
                     else
                     {
-                        //asignaci[on no posible
+                        //asignación no posible
+                        //-----------------------------------------------------------------------------------
+                        /* var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                         var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                         var endColumn = EnglishVersion ? " to " : " hasta ";
+                         var identifier = EnglishVersion ? " you can't assignate this \" " : " no puede asignar esto \" ";
+                         var errorMessage = EnglishVersion ? " the data types do not match " : " los tipos de dato no coinciden ";
+                         SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
+                                 + lexeme.EndColumn + " **ERROR** " + identifier + SymbolsTable[0][SymbolsTable[0].Count - 1].Name + " \"" + errorMessage);
+                        */
                     }
                     ExprDict = new Dictionary<int, string>();
                 }
                 else
-                if ( (stackTop == ":" || stackTop == "," ) && FillingClassInheritance && lexeme.Token == 'I')
+                if ((stackTop == ":" || stackTop == ",") && FillingClassInheritance && lexeme.Token == 'I')
                 {
                     if (DataTypesFound.TryGetValue(lexeme.Value, out char value))
                     {
                         if (!SymbolsTable[0][SymbolsTable[0].Count - 1].Parameters.TryGetValue(lexeme.Value, out string value3))
                         {
-                            SymbolsTable[0][SymbolsTable[0].Count-1].Parameters.Add(lexeme.Value, "inheritance");
+                            SymbolsTable[0][SymbolsTable[0].Count - 1].Parameters.Add(lexeme.Value, "inheritance");
                         }
                         else
                         {
@@ -507,7 +574,7 @@ namespace miniCSharp_Compiler
                         var errorMessage = EnglishVersion ? " doesn't exist" : " no existe";
                         SemanticErrors.Add(lineError + lexeme.StartRow.ToString() + innitialColumnError + lexeme.StartColumn.ToString() + endColumn
                                 + lexeme.EndColumn + " **ERROR** " + identifier + lexeme.Value + " \"" + errorMessage);
-                        ErrorInInheritance = true;                        
+                        ErrorInInheritance = true;
                     }
                     if (ErrorInInheritance)
                     {
@@ -523,7 +590,7 @@ namespace miniCSharp_Compiler
                         //we're filling an ident
                         if (!DataTypesFound.TryGetValue(TempNodeForSymbolsTable.Name, out char value))
                         {
-                          
+
                             if (validateIdentDeclInScope(TempNodeForSymbolsTable))
                             {
                                 if (ErrorInParameters)
@@ -531,7 +598,7 @@ namespace miniCSharp_Compiler
                                     TempNodeForSymbolsTable.IsActive = false;
                                     ErrorInParameters = false;
                                 }
-                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);                        
+                                SymbolsTable[TempNodeForSymbolsTable.Scope].Add(TempNodeForSymbolsTable);
                             }
                             else
                             {
@@ -591,15 +658,15 @@ namespace miniCSharp_Compiler
                             }
                             SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
                                 + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
-   
+
                         }
                         TempNodeForSymbolsTable = new SymbolNode();
-                        FillingParameters = false;                        
+                        FillingParameters = false;
                     }
                     //revisar si sí aquí debería añadirse el nodo
                 }
                 else if (lexeme.Token == 'I' && stackTop == "class")
-                {                                        
+                {
                     TempNodeForSymbolsTable.Name = lexeme.Value;
                     TempNodeForSymbolsTable.Scope = OpenScopes.Peek();
                     TempNodeForSymbolsTable.StartColumn = lexeme.StartColumn;
@@ -625,8 +692,8 @@ namespace miniCSharp_Compiler
                             + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
                     }
                     TempNodeForSymbolsTable = new SymbolNode();
-                    
-                    
+
+
                 }
                 else if (lexeme.Token == 'I' && (stackTop == "Type" || stackTop == "ConstType" || stackTop == "void" || stackTop == "interface"))
                 {
@@ -655,6 +722,13 @@ namespace miniCSharp_Compiler
                                 if (ActualDataType == "NF")//not found datatype in reduction by ID
                                 {
                                     TempNodeForSymbolsTable.IsActive = false;
+                                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                                    var identifier = EnglishVersion ? " this parameter: \" " : " el parametro: \" ";
+                                    var errorMessage = EnglishVersion ? " makes reference to a non existing data type " : " hace referencia a un tipo de dato inexistente";
+                                    SemanticErrors.Add(lineError + tempParameter.StartRow.ToString() + innitialColumnError + tempParameter.StartColumn.ToString() + endColumn
+                                        + tempParameter.EndColumn + " **ERROR** " + identifier + tempParameter.Name + " \"" + errorMessage);
                                 }
                                 TempNodeForSymbolsTable.Parameters.Add(tempParameter.Name, tempParameter.Type);
                                 SymbolsTable[tempParameter.Scope].Add(tempParameter);
@@ -676,7 +750,7 @@ namespace miniCSharp_Compiler
                         {
                             var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
                             var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
-                            var endColumn = EnglishVersion ? " to " : " hasta ";                            
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
                             var identifier = EnglishVersion ? " the parameter: \" " : " el parametro \" ";
                             var errorMessage = EnglishVersion ? " is already defined in this scope" : " ya esta definido en este ambito";
                             TempNodeForSymbolsTable.IsActive = false;
@@ -692,7 +766,7 @@ namespace miniCSharp_Compiler
                     if (ConsumedSymbols.Count > 1)
                     {
                         var tryIdentSymbol = ConsumedSymbols.Pop();
-                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void" ) && tryIdentSymbol == "I")
+                        if ((ConsumedSymbols.Peek() == "Type" || ConsumedSymbols.Peek() == "void") && tryIdentSymbol == "I")
                         {
                             ScopesIndex++;
                             OpenScopes.Push(ScopesIndex);
@@ -745,7 +819,7 @@ namespace miniCSharp_Compiler
                 else if (lexeme.Value == "}")
                 {
                     if (OpenScopes.Count > 1)
-                    {                        
+                    {
                         OpenScopes.Pop();
                     }
                     else
@@ -753,7 +827,7 @@ namespace miniCSharp_Compiler
                         //error??
                     }
 
-                    
+
                 }
                 if (lexeme.Token == 'I')
                 {
@@ -762,7 +836,7 @@ namespace miniCSharp_Compiler
                 shiftTo(analysisTableIns, (isLexemeValue ? lexeme.Value : lexeme.Token.ToString()));
             }
             else if (analysisTableIns[0] == 'r')
-            {               
+            {
                 var column = 0;
                 var headerFound = false;
                 if (analysisTableIns == "r16" || analysisTableIns == "r17" || analysisTableIns == "r18" || analysisTableIns == "r19"
@@ -782,14 +856,20 @@ namespace miniCSharp_Compiler
                         {
                             ActualDataType = "NF";
                             //imprimir error que en la herencia no se encontró el tipo de dato
+                            var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                            var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                            var endColumn = EnglishVersion ? " to " : " hasta ";
+                            var identifier = EnglishVersion ? " this identifier: \" " : " el identificador: \" ";
+                            var errorMessage = EnglishVersion ? " has an invalid data type " : " se esta intentando crear con un tipo de dato que no existe";
+                            SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                                + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
                         }
                         else if (FillingParameters)
                         {
                             ActualDataType = "NF";
-                            //imprimir error que en la def de params no se encontró el tipo de dato
                         }
-                        //Erorr trying to define variable with non existing data type
-                        //puede ser también una asignación, revisar esto
+
+
                     }
                 }
                 reduceBy(analysisTableIns);
@@ -813,22 +893,22 @@ namespace miniCSharp_Compiler
                 }
             }
         }
-        bool validateIdentDeclInScope (SymbolNode actualIdent)
+        bool validateIdentDeclInScope(SymbolNode actualIdent)
         {
-           
-                if (SymbolsTable[actualIdent.Scope].Count != 0 )
+
+            if (SymbolsTable[actualIdent.Scope].Count != 0)
+            {
+                foreach (var symbol in SymbolsTable[actualIdent.Scope])
                 {
-                    foreach (var symbol in SymbolsTable[actualIdent.Scope])
+                    if (symbol.Name == actualIdent.Name)
                     {
-                        if (symbol.Name == actualIdent.Name)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
-                return true;
-            
-            
+            }
+            return true;
+
+
         }
         string getAnalysisTableInstruction(int column)
         {
@@ -873,8 +953,8 @@ namespace miniCSharp_Compiler
 
             ConsumedSymbols.Push(productionName);
         }
-        void  initializeSymbolsTable(List<SymbolNode> symbolsTable) 
-        { 
+        void initializeSymbolsTable(List<SymbolNode> symbolsTable)
+        {
             SymbolsTable = new Dictionary<int, List<SymbolNode>>();
             SymbolsTable.Add(0, new List<SymbolNode>());
             for (int i = 0; i < symbolsTable.Count; i++)
@@ -886,7 +966,7 @@ namespace miniCSharp_Compiler
         SymbolNode getVariableFromSymbolsTable(string name)
         {
             var auxStack = new Stack<int>(OpenScopes);
-            
+
             while (OpenScopes.Count > 0)
             {
                 foreach (var item in SymbolsTable[OpenScopes.Peek()])
@@ -898,7 +978,7 @@ namespace miniCSharp_Compiler
                     }
                 }
                 OpenScopes.Pop();
-            } 
+            }
 
             OpenScopes = new Stack<int>(auxStack);
             return null;
@@ -928,10 +1008,18 @@ namespace miniCSharp_Compiler
                     {
                         return result;
                     }
-                }                
+                }
                 else
                 {
                     //división entre 0
+                    var lineError = EnglishVersion ? "In line number: " : "En la linea: ";
+                    var innitialColumnError = EnglishVersion ? ", on columns: " : ", en las columnas: ";
+                    var endColumn = EnglishVersion ? " to " : " hasta ";
+                    var identifier = EnglishVersion ? " this operations cannot be done: \" " : " esta operacion no puede hacerse: \" ";
+                    var errorMessage = EnglishVersion ? " you can't divide by zero " : " se esta intentando no se sabe quien reinicio";
+                    SemanticErrors.Add(lineError + TempNodeForSymbolsTable.StartRow.ToString() + innitialColumnError + TempNodeForSymbolsTable.StartColumn.ToString() + endColumn
+                        + TempNodeForSymbolsTable.EndColumn + " **ERROR** " + identifier + TempNodeForSymbolsTable.Name + " \"" + errorMessage);
+
                 }
             }
             catch (Exception)
